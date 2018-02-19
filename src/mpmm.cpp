@@ -2,6 +2,7 @@
 
 using namespace density;
 
+// need to link to these via glmmTMB pkg
 template <class Type>
 struct per_term_info {
   // Input from R
@@ -14,7 +15,7 @@ struct per_term_info {
   matrix<Type> corr;
   vector<Type> sd;
 };
-
+// need to link to these via glmmTMB pkg
 template <class Type>
 struct terms_t : vector<per_term_info<Type> > {
   terms_t(SEXP x){
@@ -37,7 +38,7 @@ enum valid_covStruct {
   diag_covstruct = 0,
   us_covstruct   = 1
 };
-
+// need to link to these via glmmTMB pkg
 template <class Type>
 Type termwise_nll(array<Type> &U, vector<Type> theta, per_term_info<Type>& term) {
   Type ans = 0;
@@ -66,7 +67,7 @@ Type termwise_nll(array<Type> &U, vector<Type> theta, per_term_info<Type>& term)
   else error("covStruct not implemented!");
   return ans;
 }
-
+// need to link to these via glmmTMB pkg
 template <class Type>
 Type allterms_nll(vector<Type> &u, vector<Type> theta,
                   vector<per_term_info<Type> >& terms) {
