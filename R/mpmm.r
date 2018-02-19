@@ -25,6 +25,9 @@
 ##' \item{\code{tmb}}{the tmb object}
 ##' \item{\code{opt}}{the object returned by the optimizer}
 ##' @examples
+##' data(ellie.ice)
+##' fit <- mpmm(~ ice + (1 | id), data = d.ice)
+##' summary(fit)
 ##'
 ##' @useDynLib mpmm
 ##' @importFrom lme4 nobars findbars subbars mkReTrms
