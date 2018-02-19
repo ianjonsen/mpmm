@@ -211,6 +211,8 @@ mpmm <- function(
     optim = do.call("optim", obj)
   )))
 
+  cat("\n", opt.time, "\n")
+
   ## Parameters, states and the fitted values
   rep <- sdreport(obj)
   fxd <- summary(rep, "report")
