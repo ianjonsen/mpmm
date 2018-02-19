@@ -5,7 +5,7 @@ Version: 0.1.0
 Author: Ian Jonsen
 Maintainer: Ian Jonsen <ian.jonsen@mq.edu.au>
 Description: Fit linear mixed-effects models within a random walk with time-varying move persistence (autocorrelation)
-Depends: R (>= 3.1.0)
+Depends: R (>= 3.4.3)
 Imports: 
     TMB,
     lme4,
