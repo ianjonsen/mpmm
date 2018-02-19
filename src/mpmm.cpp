@@ -2,7 +2,7 @@
 
 using namespace density;
 
-// need to link to these via glmmTMB pkg
+// need to link to these via glmmTMB pkg but can't currently because they do not export C++
 template <class Type>
 struct per_term_info {
   // Input from R
@@ -38,7 +38,7 @@ enum valid_covStruct {
   diag_covstruct = 0,
   us_covstruct   = 1
 };
-// need to link to these via glmmTMB pkg
+// need to link to these via glmmTMB pkg but can't currently because they do not export C++
 template <class Type>
 Type termwise_nll(array<Type> &U, vector<Type> theta, per_term_info<Type>& term) {
   Type ans = 0;
@@ -67,7 +67,7 @@ Type termwise_nll(array<Type> &U, vector<Type> theta, per_term_info<Type>& term)
   else error("covStruct not implemented!");
   return ans;
 }
-// need to link to these via glmmTMB pkg
+// need to link to these via glmmTMB pkg but can't currently because they do not export C++
 template <class Type>
 Type allterms_nll(vector<Type> &u, vector<Type> theta,
                   vector<per_term_info<Type> >& terms) {
