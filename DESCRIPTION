@@ -1,11 +1,10 @@
 Package: mpmm
 Type: Package
-Title: What the Package Does (Title Case)
+Title: (animal) Move Persistence Mixed-effects Models
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Author: Ian Jonsen
+Maintainer: Ian Jonsen <ian.jonsen@mq.edu.au>
+Description: Fit linear mixed-effects models within a random walk with time-varying move persistence (autocorrelation)
+License: AGPL-3
 Encoding: UTF-8
 LazyData: true
