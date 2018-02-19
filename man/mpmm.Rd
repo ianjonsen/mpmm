@@ -42,3 +42,6 @@ observed location and columns
 \item{'...'}{named covariates appended to track}
 }
 }
+\examples{
+
+}

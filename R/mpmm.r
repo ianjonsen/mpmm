@@ -24,6 +24,9 @@
 ##' \item{\code{data}}{input dataframe}
 ##' \item{\code{tmb}}{the tmb object}
 ##' \item{\code{opt}}{the object returned by the optimizer}
+##' @examples
+##'
+##' @useDynLib mpmm
 ##' @importFrom lme4 nobars findbars subbars mkReTrms
 ##' @importFrom glmmTMB getReStruc splitForm
 ##' @importFrom Matrix t
