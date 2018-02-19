@@ -25,7 +25,7 @@
 ##' \item{\code{tmb}}{the tmb object}
 ##' \item{\code{opt}}{the object returned by the optimizer}
 ##' @importFrom lme4 nobars findbars subbars mkReTrms
-##' @importFrom glmmTMB getReStruc
+##' @importFrom glmmTMB getReStruc splitForm
 ##' @importFrom Matrix t
 ##' @importFrom dplyr %>%
 ##' @importFrom TMB MakeADFun sdreport
