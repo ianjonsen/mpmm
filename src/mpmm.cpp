@@ -1,6 +1,6 @@
 #include <TMB.hpp>
 
-using namespace mpmm;
+using namespace density;
 
 template <class Type>
 struct per_term_info {
@@ -47,7 +47,7 @@ Type termwise_nll(array<Type> &U, vector<Type> theta, per_term_info<Type>& term)
     for(int i = 0; i < term.blockReps; i++){
       ans -= dnorm(vector<Type>(U.col(i)), Type(0), sd, true).sum();
     }
-    term.sd = sd; 
+    term.sd = sd;
   }
   else if (term.blockCode == us_covstruct){
     // case: us_covstruct
@@ -60,8 +60,8 @@ Type termwise_nll(array<Type> &U, vector<Type> theta, per_term_info<Type>& term)
     for(int i = 0; i < term.blockReps; i++){
       ans += scnldens(U.col(i));
     }
-    term.corr = nldens.cov(); 
-    term.sd = sd;             
+    term.corr = nldens.cov();
+    term.sd = sd;
   }
   else error("covStruct not implemented!");
   return ans;
@@ -96,13 +96,13 @@ Type objective_function<Type>::operator() ()
 {
 
   DATA_MATRIX(X);                   // fixed effects design matrix
-  DATA_SPARSE_MATRIX(Z);            // random effects design sparse matrix  
+  DATA_SPARSE_MATRIX(Z);            // random effects design sparse matrix
   DATA_MATRIX(ll);                  // locations
   DATA_FACTOR(idx);                 // cumsum of number of locations for each animal
 
   // Define covariance structure for the conditional model
   DATA_STRUCT(terms, terms_t);
-  
+
   DATA_INTEGER(A);                // number of animals
 
   PARAMETER_VECTOR(lg);		          // move autocorrelation parameter (gamma on link scale)
@@ -112,7 +112,7 @@ Type objective_function<Type>::operator() ()
   PARAMETER(log_sigma_g);           // logistic scale parameter of rw on lg (log scale)
   PARAMETER_VECTOR(theta);          // covariance parameters
 
-  
+
 // Backtransform parameters from link scale
 vector<Type> gamma = Type(1.0) / (Type(1.0) + exp(-lg));
 vector<Type> sigma = exp(log_sigma);
@@ -128,20 +128,20 @@ cov(1,1) = sigma(1) * sigma(1);
 Type jnll = 0.0;
 vector<Type> mu(2);
 
-density::MVNORM_t<Type> nll_dens(cov); 
+MVNORM_t<Type> nll_dens(cov);
 int i,j;
 
-// Random intercept & slope(s) 
+// Random intercept & slope(s)
 jnll += allterms_nll(b, theta, terms);
 
 // linear predictor
 vector<Type> eta = X * beta + Z * b;
-  
+
   for(i = 0; i < A; ++i) {
     for(j = idx(i); j < idx(i+1); ++j) {
-      jnll -= dnorm(lg(j), eta(j), sigma_g, true);  
+      jnll -= dnorm(lg(j), eta(j), sigma_g, true);
     }
-    
+
     for(j = (idx(i)+2); j < idx(i+1); ++j){
       mu = ll.row(j) - ll.row(j-1) - gamma(j-1) * (ll.row(j-1) - ll.row(j-2));  // first diff RW on locations
       jnll += nll_dens(mu);
@@ -157,9 +157,9 @@ vector<Type> eta = X * beta + Z * b;
       sd(i) = terms(i).sd;
     }
   }
-  
+
   REPORT(corr);
-  REPORT(sd);  
+  REPORT(sd);
   ADREPORT(sigma_g);
   ADREPORT(sigma);
   ADREPORT(beta);

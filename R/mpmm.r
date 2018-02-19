@@ -1,10 +1,10 @@
-##' Fit a move persistence random walk via TMB to a pre-filtered/regularised animal 
+##' Fit a move persistence random walk via TMB to a pre-filtered/regularised animal
 ##'   track and estimate gamma as a linear function of covariates
-##'   
+##'
 ##' The input track is given as a dataframe where each row is an
 ##' observed location and columns
 ##' \describe{
-##' \item{'id'}{individual animal identifier,} 
+##' \item{'id'}{individual animal identifier,}
 ##' \item{'date'}{observation time (POSIXct,GMT),}
 ##' \item{'lon'}{observed longitude,}
 ##' \item{'lat'}{observed latitude,}
@@ -25,9 +25,10 @@
 ##' \item{\code{tmb}}{the tmb object}
 ##' \item{\code{opt}}{the object returned by the optimizer}
 ##' @importFrom lme4 nobars findbars subbars mkReTrms
-##' @importFrom glmmTMB getReStruc 
+##' @importFrom glmmTMB getReStruc
 ##' @importFrom Matrix t
-##' @importFrom TMB MakeADFun sdreport 
+##' @importFrom dplyr %>%
+##' @importFrom TMB MakeADFun sdreport
 ##' @export
 mpmm <- function(
                 formula = NA,
@@ -42,7 +43,7 @@ mpmm <- function(
   ## not needed in when packaged
 #  compile("src/mpmm.cpp")
 #  dyn.load(dynlib("src/mpmm"))
-  
+
   # check that the formula is a formula
   is.formula <- function(x)
     tryCatch(
@@ -53,19 +54,19 @@ mpmm <- function(
     )
   if (!is.formula(formula))
     stop("\n'formula' must be specified as ~ x + ...")
-  
+
   # check that there is no response variable in the formula
   if (attr(terms(formula), "response") != 0)
     stop("\n'formula' can not have a response variable")
-  
+
   # check that either ML or REML are the specified maximisation method
   if (!method %in% c("ML", "REML"))
     stop("\n'method' argument must be either ML or REML")
-  
+
   # check that formula has a random component
   if(is.null(lme4::findbars(formula)))
     stop("\n formula must include a random component; e.g., ~ (1 | id)")
-  
+
   ## take stab at using modified glmmTMB structures
   # evaluate model frame
   m <- match(c("data", "subset", "na.action"),
@@ -74,16 +75,16 @@ mpmm <- function(
   mf$drop.unused.levels <- TRUE
   mf[[1]] <- as.name("model.frame")
   mf$formula <- formula
-  
+
   f <- subbars(formula)
   environment(f) <- environment(formula)
   mf$formula <- f
   fr <- eval(mf, envir = environment(formula), enclos = parent.frame())
-  
+
   # strip random part of formula
   ff <- nobars(formula)
   nobs <- nrow(fr)
-  
+
   # build fixed effects model matrix X
   # no model matrix if fixed part of formula is empty
   if (identical(ff, ~  0) ||
@@ -95,7 +96,7 @@ mpmm <- function(
     X <- model.matrix(ff, fr)
     terms <- list(fixed = terms(termf))
   }
-  
+
   # build random effects sparse matrix Z
   ref <- formula
   if (is.null(findbars(ref))) {
@@ -109,15 +110,15 @@ mpmm <- function(
     mf$formula <- ref
     ss <- splitForm(formula)
     ss <- unlist(ss$reTrmClasses)
-    Z <- t(reTrms$Zt) 
+    Z <- t(reTrms$Zt)
   }
-  
+
   condList  <- list(X = X, Z = Z, reTrms = reTrms, ss = ss, terms = terms)
-  
+
   condReStruc <- with(condList, getReStruc(reTrms, ss))
-  
+
   gnm <- names(condList$reTrms$flist)
-  
+
   # num observations
   nobs <- nrow(fr)
 
@@ -126,14 +127,14 @@ mpmm <- function(
 
   # num random effects
   #nre <- sapply(reTrms$cnms, length) %>% sum()
-  
+
   ## get index of observations per group level - nominally individual animals
   idx <- data$id %>%
     table() %>%
     as.numeric() %>%
     cumsum() %>%
     c(0, .)
-    
+
   ## build data for TMB
   data.tmb <- list(
     X     = condList$X,
@@ -146,7 +147,7 @@ mpmm <- function(
 
   getVal <- function(obj, component)
     vapply(obj, function(x) x[[component]], numeric(1))
-  
+
   param <- with(data.tmb,
                      list(
                        lg          = rep(1, nobs),
@@ -157,24 +158,24 @@ mpmm <- function(
                        theta       = rep(0, sum(getVal(condReStruc, "blockNumTheta")))
                      ))
   rnd <- c("lg", if(ncol(data.tmb$Z) > 0) "b")
-   
-  
-  forTMB <- list(data = data.tmb, 
-              param = param, 
-              rnd = rnd, 
+
+
+  forTMB <- list(data = data.tmb,
+              param = param,
+              rnd = rnd,
               gnm = gnm,
-              condList = condList, 
-              condReStruc = condReStruc, 
+              condList = condList,
+              condReStruc = condReStruc,
               allForm = list(formula),
-              fr = fr, 
-              call = call, 
+              fr = fr,
+              call = call,
               verbose = verbose
               )
-  
+
   # integrate out the beta's from the likelihood - REML estimation; appends the beta's to the random arg.
   profile <- NULL
   if(method == "REML") profile <- "beta"
-      
+
   ## TMB - create objective function
   obj <-
     with(
@@ -189,16 +190,16 @@ mpmm <- function(
         silent = !verbose
       )
     )
-  
+
   obj$env$inner.control$trace <- verbose
   obj$env$tracemgc <- verbose
-  
+
   obj$control <- list(trace = 0,
                       reltol = 1e-12,
                       maxit = 500)
   obj$hessian <- TRUE
   newtonOption(obj, smartsearch = TRUE)
-  
+
   ## Minimize objective function
   opt.time <- system.time(opt <- suppressWarnings(switch(
     optim,
@@ -209,16 +210,16 @@ mpmm <- function(
     ),
     optim = do.call("optim", obj)
   )))
-  
+
   ## Parameters, states and the fitted values
   rep <- sdreport(obj)
   fxd <- summary(rep, "report")
   fxd_log <- summary(rep, "fixed")
   rdm <- summary(rep, "random")
-  
+
   lg <- rdm[rownames(rdm) %in% "lg",]
   b <- rdm[rownames(rdm) %in% "b", ]
-  
+
   ## build table of ranefs
   nms <- c(gnm, unlist(reTrms$cnms))
   ## get number of random terms
@@ -229,7 +230,7 @@ mpmm <- function(
     data.frame(unique(reTrms$flist[[1]]), .) %>%
     tbl_df()
   names(ret) <- nms
-  
+
   ## build table of gamma estimates
   fitted <- data_frame(
     id = data$id,
@@ -237,7 +238,7 @@ mpmm <- function(
     g = plogis(lg[, 1]),
     g.se = lg[, 2]
   )
-  
+
   if (optim == "nlminb") {
     aic <- 2 * length(opt[["par"]]) - 2 * opt[["objective"]]
     bic <-
@@ -247,14 +248,14 @@ mpmm <- function(
     aic <- 2 * length(opt[["par"]]) - 2 * opt[["value"]]
     bic <- log(nrow(data)) * length(opt[["par"]]) - 2 * opt[["value"]]
   }
-  
+
   rownames(fxd)[rownames(fxd) %in% "sigma"] <-
     c("sigma_lon", "sigma_lat")
   rownames(fxd)[rownames(fxd) %in% "beta"][1] <- "Intercept"
-  
+
   ft <- attr(termf, "term.labels")
   rownames(fxd)[rownames(fxd) %in% "beta"] <- ft
-  
+
   structure(
     list(
       formula = formula,
@@ -272,6 +273,6 @@ mpmm <- function(
     ),
     class = "mpmm"
   )
-  
+
 }
 

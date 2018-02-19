@@ -1,6 +1,8 @@
 ##' @importFrom stats pnorm
 ##' @importFrom lme4 nobars findbars
 ##' @method summary mpmm
+##' @importFrom lme4 nobars
+##' @importFrom dplyr %>%
 ##' @export
 summary.mpmm <- function(fit, ...) {
   if (length(list(...)) > 0) {
@@ -9,7 +11,7 @@ summary.mpmm <- function(fit, ...) {
   nobs <-
     with(fit$data, apply(!is.na(cbind(lon, lat)), 1, min)) %>%
     sum(.)
-  
+
   mkAICtab <- function(fit) {
     data.frame(
       AIC      = fit$aic,
@@ -65,37 +67,37 @@ summary.mpmm <- function(fit, ...) {
   }
 
   mkFixtab <- function(fit) {
-    terms <- lme4::nobars(fit$formula) %>%
+    terms <- nobars(fit$formula) %>%
       terms() %>%
       attr(., "term.labels")
     terms <- c("Intercept", terms)
     val <- fit$par[rownames(fit$par) %in% terms, "Estimate"]
     stderr <- fit$par[rownames(fit$par) %in% terms, "Std. Error"]
     terms[1] <- "(Intercept)"
-    
+
     Fixtab <- cbind(#terms,
                          val,
                          stderr,
-                         val / stderr, 
+                         val / stderr,
                          2 * pnorm(abs(val/stderr), lower.tail = FALSE))
     colnames(Fixtab) <- c("Value", "Std.Error", "z value", "Pr(>|z|)")
     Fixtab
   }
- 
+
   nobs <- with(fit$data, apply(!is.na(cbind(lon, lat)), 1, min)) %>%
     sum(.)
   resid.df <- nobs - length(fit$opt$par)
-  terms <- lme4::nobars(fit$formula) %>%
+  terms <- nobars(fit$formula) %>%
     terms() %>%
     attr(., "term.labels")
   terms <- c("Intercept", terms)
   coef <- fit$par[rownames(fit$par) %in% terms, "Estimate"]
-  
-  ranform <- lme4::findbars(fit$formula) %>% 
+
+  ranform <- lme4::findbars(fit$formula) %>%
     as.character() %>%
     paste0("(", ., ")")
   fixform <- lme4::nobars(fit$formula) %>% as.character()
-   
+
   structure(
     list(
       data = fit$dnm,
@@ -114,13 +116,14 @@ summary.mpmm <- function(fit, ...) {
 }
 
 ##' @method print summary.mpmm
+##' @importFrom stats printCoefmat
 ##' @export
 print.summary.mpmm <- function(x, digits = 3,
                                signif.stars = getOption("show.signif.stars"),
                                ...)
 {
 
- 
+
  # print(x$logLik); cat("\n")
     cat("Formula: ~", as.character(x$formula)[2], "\n")
     cat("Data: ", x$data, "\n\n")
@@ -129,9 +132,9 @@ print.summary.mpmm <- function(x, digits = 3,
     cat("Random effects: ~", x$ranform, "\n")
     print(x$Vartab, row.names = FALSE, digits = digits)
     cat("number of obs: ", x$nobs, ", group: ", x$grpnm, "\n\n", sep = "")
-    
+
     cat("fixed effects:", x$fixform, "\n")
     printCoefmat(x$Fixtab, digits = digits, signif.stars = signif.stars)
-  
+
   invisible(x)
 }## print.summary.mpmm
