@@ -40,10 +40,6 @@ mpmm <- function(
   call <- mf <- match.call()
   optim <- match.arg(optim)
 
-  ## not needed in when packaged
-#  compile("src/mpmm.cpp")
-#  dyn.load(dynlib("src/mpmm"))
-
   # check that the formula is a formula
   is.formula <- function(x)
     tryCatch(
