@@ -1,8 +1,8 @@
 ##' @importFrom stats pnorm
 ##' @importFrom lme4 nobars findbars
-##' @method summary mpmm
 ##' @importFrom lme4 nobars
 ##' @importFrom dplyr %>%
+##' @method summary mpmm
 ##' @export
 summary.mpmm <- function(fit, ...) {
   if (length(list(...)) > 0) {
@@ -115,8 +115,8 @@ summary.mpmm <- function(fit, ...) {
   )
 }
 
-##' @method print summary.mpmm
 ##' @importFrom stats printCoefmat
+##' @method print summary.mpmm
 ##' @export
 print.summary.mpmm <- function(x, digits = 3,
                                signif.stars = getOption("show.signif.stars"),
