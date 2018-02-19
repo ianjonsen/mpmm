@@ -7,12 +7,12 @@ Maintainer: Ian Jonsen <ian.jonsen@mq.edu.au>
 Description: Fit covariates as linear mixed-effects within a random walk with time-varying move persistence (autocorrelation) model. 
 Depends: R (>= 3.4.3)
 Imports: 
-    TMB,
-    lme4,
-    glmmTMB,
-    Matrix,
-    dplyr,
-    tibble
+    TMB (>= 1.7.12),
+    lme4 (>= 1.1-15),
+    glmmTMB (>= 0.2.0),
+    Matrix (>= 1.2-12),
+    dplyr (>= 0.7.4),
+    tibble (>= 1.4.1)
 License: AGPL-3
 Encoding: UTF-8
 LazyData: true
