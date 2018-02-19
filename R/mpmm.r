@@ -64,7 +64,7 @@ mpmm <- function(
     stop("\n'method' argument must be either ML or REML")
 
   # check that formula has a random component
-  if(is.null(lme4::findbars(formula)))
+  if(is.null(findbars(formula)))
     stop("\n formula must include a random component; e.g., ~ (1 | id)")
 
   ## take stab at using modified glmmTMB structures
