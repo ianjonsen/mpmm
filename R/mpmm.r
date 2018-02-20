@@ -34,7 +34,7 @@
 ##' @importFrom glmmTMB getReStruc splitForm
 ##' @importFrom Matrix t
 ##' @importFrom dplyr %>%
-##' @importFrom TMB MakeADFun sdreport
+##' @importFrom TMB MakeADFun sdreport newtonOption
 ##' @export
 mpmm <- function(
                 formula = NA,
