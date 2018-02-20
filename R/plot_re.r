@@ -1,8 +1,19 @@
+##' Plot fixed and random components
+##'
+##' @title plot
+##' @param x a fitted object of class mpmm
+##' @param page 1 = plot all terms on a single page, 0 otherwise
+##'
+##'
+##' @importFrom lme4 nobars
+##' @importFrom ggplot2 ggplot geom_line aes xlab ylab theme_bw element_text
+##' @export
 plot_re <- function(m) {
 
+  browser()
 n <- dim(m$par)[1]
 
-terms <- attr(terms(lme4::nobars(m$formula)), "term.labels")
+terms <- attr(terms(nobars(m$formula)), "term.labels")
 
 rng <- sapply(1:length(terms), function(i) range(m$data[, terms[i]]))
 x <- sapply(1:length(terms), function(i) seq(rng[1,i], rng[2,i], l = 200))
@@ -18,7 +29,7 @@ if(dim(m$re)[2] == 2) {
   ## intercept only random effect
   re_ints <- m$par["Intercept", "Estimate"] + m$re$`(Intercept)`
   k <- length(re_ints)
-  
+
   p <- lapply(1:length(terms), function(j) {
     re1 <- sapply(1:k, function(i) {
       plogis(re_ints[i] + bs[j] * x[, j])
@@ -31,7 +42,7 @@ if(dim(m$re)[2] == 2) {
         value.name = "g",
         variable.name = "Intercept"
       )
-    
+
     ggplot() + theme(axis.text = element_text(size = 14),
                      axis.title = element_text(size = 20)) +
       geom_line(aes(pdat$x, pdat$g, group = pdat$b0),
@@ -70,7 +81,7 @@ if(dim(m$re)[2] == 2) {
       xlab(terms[j]) + ylab(expression(gamma[t])) +
       theme_bw()
   })
- 
+
 }
 p
 
