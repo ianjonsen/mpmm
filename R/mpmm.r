@@ -262,6 +262,7 @@ mpmm <- function(
 
   structure(
     list(
+      call = call,
       formula = formula,
       data = data,
       fitted = fitted,
