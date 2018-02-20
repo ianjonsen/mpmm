@@ -7,8 +7,9 @@
 ##'
 ##' @importFrom lme4 nobars
 ##' @importFrom ggplot2 ggplot geom_line aes xlab ylab theme_bw element_text
+##' @method plot mpmm
 ##' @export
-plot_re <- function(m) {
+plot.mpmm <- function(m) {
 
   browser()
 n <- dim(m$par)[1]
