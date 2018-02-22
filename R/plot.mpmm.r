@@ -13,15 +13,20 @@
 plot.mpmm <- function(m, page = 1) {
 
 terms <- attr(terms(nobars(m$formula)), "term.labels")
+n <- length(terms)
+rng <- sapply(1:n, function(i) range(m$fr[, terms[i]]))
+xt <- sapply(1:n, function(i) seq(rng[1,i], rng[2,i], l = 200))
+xt.mn <- apply(xt, 2, mean)
 
-rng <- sapply(1:length(terms), function(i) range(m$fr[, terms[i]]))
-xt <- sapply(1:length(terms), function(i) seq(rng[1,i], rng[2,i], l = 200))
+f_int <- m$par["Intercept","Estimate"]
+betas <- sapply(1:n, function(i) m$par[terms[i],"Estimate"])
 
-betas <- sapply(1:dim(xt)[2], function(i) m$par[terms[i],"Estimate"])
-
-fxd <- sapply(1:dim(xt)[2], function(i) {
-  fxd_int <- m$par["Intercept","Estimate"]
-  plogis(fxd_int + betas[i] * xt[, i])
+fxd <- sapply(1:n, function(i) {
+  if(n > 1) {
+    plogis(f_int + betas[i] * xt[, i] + betas[-i] %*% xt.mn[-i])
+  } else {
+    plogis(f_int + betas * xt)
+  }
 })
 
 if(dim(m$re)[2] == 2) {
@@ -29,11 +34,16 @@ if(dim(m$re)[2] == 2) {
   re_ints <- m$par["Intercept", "Estimate"] + m$re$`(Intercept)`
   k <- length(re_ints)
 
-  p <- lapply(1:length(terms), function(j) {
-    re1 <- sapply(1:k, function(i) {
-      plogis(re_ints[i] + betas[j] * xt[, j])
+  p <- lapply(1:n, function(j) {
+    re <- sapply(1:k, function(i) {
+      if(n > 1) {
+        plogis(re_ints[i] + betas[j] * xt[, j] + betas[-j] * xt.mn[-j])
+      } else {
+        plogis(re_ints[i] + betas * xt)
+      }
     })
-    pdat <- data.frame(x = xt[, j], g = re1)
+
+    pdat <- data.frame(x = xt[, j], g = re)
     pdat <-
       reshape2::melt(
         pdat,
@@ -41,8 +51,8 @@ if(dim(m$re)[2] == 2) {
         value.name = "g",
         variable.name = "Intercept"
       )
-
     pdat1 <- data.frame(x=xt[,j], y=fxd[,j])
+
     ggplot() + theme(axis.text = element_text(size = 14),
                      axis.title = element_text(size = 20)) +
       geom_line(aes(pdat$x, pdat$g, group = pdat$Intercept),
@@ -56,19 +66,32 @@ if(dim(m$re)[2] == 2) {
       theme_bw()
   })
 } else {
-  re_ints <- m$par["Intercept", "Estimate"] + m$re$`(Intercept)`
+  ## intercept + slope(s) random effects
+  re_ints <- f_int + m$re$`(Intercept)`
   k <- length(re_ints)
-  ## below doesn't work if 2 fixed terms but only 1 random slope term...
+
   rnms <- names(m$re)[!names(m$re) %in% c("id","(Intercept)")]
-  re_bs <- sapply(1:length(rnms), function(i) {
-    m$par[rownames(m$par) %in% terms, "Estimate"][i] + m$re[, rnms]
+  # check for fixed terms not in random terms
+  rmiss <- which(!terms %in% rnms)
+  rpos <- which(terms %in% rnms)
+
+  bs <- matrix(0, ncol = n, nrow = k)
+  bs[, rmiss] <- 0
+  bs[, rpos] <- unlist(m$re[, rnms])
+
+  re_betas <- sapply(1:n, function(i) {
+    (betas[i] + bs[, i])
   })
 
-  p <- lapply(1:length(terms), function(j){
-    re1 <- sapply(1:k, function(i){
-      plogis(re_ints[i] + re_bs[[j]][i] * xt[, j])
-    })
-    pdat <- data.frame(x = xt[, j], g = re1)
+  re <- lapply(1:n, function(j){
+    if(n > 2) {
+      plogis(re_ints + re_betas[,j] %o% xt[,j] + as.vector(re_betas[,-j] %*% xt.mn[-j]))
+    } else {
+      plogis(re_ints + re_betas[,j] %o% xt[,j] + re_betas[,-j] * xt.mn[-j])
+    }
+  })
+  p <- lapply(1:n, function(j) {
+    pdat <- data.frame(x = xt[, j], g = t(re[[j]]))
     pdat <- reshape2::melt(
       pdat,
       id.vars = "x",
@@ -76,6 +99,7 @@ if(dim(m$re)[2] == 2) {
       variable.name = "re"
     )
     pdat1 <- data.frame(x=xt[,j], y=fxd[,j])
+
     ggplot() + theme(axis.text = element_text(size = 14),
                      axis.title = element_text(size = 20)) +
       geom_line(aes(pdat$x, pdat$g, group = pdat$re),
@@ -86,10 +110,9 @@ if(dim(m$re)[2] == 2) {
       ylab(expression(gamma[t])) +
       ylim(0,1) +
       theme_bw()
-  })
+})
 
 }
-n <- length(p)
 if (n > 1 && page == 1) {
   grid.arrange(grobs = p, nrow = floor(sqrt(n)))
 } else if (n == 1 || page == 0) {
