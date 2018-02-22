@@ -100,7 +100,7 @@ summary.mpmm <- function(fit, ...) {
 
   structure(
     list(
-      data = fit$dnm,
+      mf = fit$mf,
       logLik = mkAICtab(fit),
       grpnm = names(fit$re)[1],
       nobs = nobs,
@@ -126,7 +126,7 @@ print.summary.mpmm <- function(x, digits = 3,
 
  # print(x$logLik); cat("\n")
     cat("Formula: ~", as.character(x$formula)[2], "\n")
-    cat("Data: ", x$data, "\n\n")
+    cat("Data: ", x$mf$data, "\n\n")
     print(x$logLik, row.names = FALSE); cat("\n\n")
 
     cat("Random effects: ~", x$ranform, "\n")

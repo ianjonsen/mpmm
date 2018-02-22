@@ -69,7 +69,6 @@ mpmm <- function(
   if(is.null(findbars(formula)))
     stop("\n formula must include a random component; e.g., ~ (1 | id)")
 
-  ## take stab at using modified glmmTMB structures
   # evaluate model frame
   m <- match(c("data", "subset", "na.action"),
              names(mf), 0L)
@@ -244,13 +243,13 @@ mpmm <- function(
   )
 
   if (optim == "nlminb") {
-    aic <- 2 * length(opt[["par"]]) - 2 * opt[["objective"]]
+    aic <- 2 * length(opt[["par"]]) + 2 * opt[["objective"]]
     bic <-
-      log(nrow(data)) * length(opt[["par"]]) - 2 * opt[["objective"]]
+      log(nrow(data)) * length(opt[["par"]]) + 2 * opt[["objective"]]
   }
   else {
-    aic <- 2 * length(opt[["par"]]) - 2 * opt[["value"]]
-    bic <- log(nrow(data)) * length(opt[["par"]]) - 2 * opt[["value"]]
+    aic <- 2 * length(opt[["par"]]) + 2 * opt[["value"]]
+    bic <- log(nrow(data)) * length(opt[["par"]]) + 2 * opt[["value"]]
   }
 
   rownames(fxd)[rownames(fxd) %in% "sigma"] <-
@@ -265,6 +264,8 @@ mpmm <- function(
       call = call,
       formula = formula,
       data = data,
+      mf = mf,
+      fr = fr,
       fitted = fitted,
       par = fxd,
       re = ret,
@@ -273,8 +274,7 @@ mpmm <- function(
       method = method,
       rep = rep,
       aic = aic,
-      bic = bic,
-      dnm = deparse(substitute(data))
+      bic = bic
     ),
     class = "mpmm"
   )

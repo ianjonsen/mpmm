@@ -4,12 +4,12 @@
 \alias{plot.mpmm}
 \title{plot}
 \usage{
-\method{plot}{mpmm}(m)
+\method{plot}{mpmm}(m, page = 1)
 }
 \arguments{
-\item{x}{a fitted object of class mpmm}
-
 \item{page}{1 = plot all terms on a single page, 0 otherwise}
+
+\item{x}{a fitted object of class mpmm}
 }
 \description{
 Plot fixed and random components
