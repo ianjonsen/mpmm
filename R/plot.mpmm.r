@@ -8,6 +8,7 @@
 ##' @importFrom lme4 nobars
 ##' @importFrom ggplot2 ggplot geom_line aes xlab ylab theme_bw element_text
 ##' @importFrom gridExtra grid.arrange
+##' @importFrom reshape2 melt
 ##' @method plot mpmm
 ##' @export
 plot.mpmm <- function(m, page = 1) {
@@ -37,6 +38,7 @@ if(dim(m$re)[2] == 2) {
   p <- lapply(1:n, function(j) {
     re <- sapply(1:k, function(i) {
       if(n > 1) {
+        browser()
         plogis(re_ints[i] + betas[j] * xt[, j] + betas[-j] * xt.mn[-j])
       } else {
         plogis(re_ints[i] + betas * xt)
@@ -86,8 +88,10 @@ if(dim(m$re)[2] == 2) {
   re <- lapply(1:n, function(j){
     if(n > 2) {
       plogis(re_ints + re_betas[,j] %o% xt[,j] + as.vector(re_betas[,-j] %*% xt.mn[-j]))
-    } else {
+    } else if(n > 1) {
       plogis(re_ints + re_betas[,j] %o% xt[,j] + re_betas[,-j] * xt.mn[-j])
+    } else {
+      plogis(re_ints + re_betas[,j] %o% xt[,j])
     }
   })
   p <- lapply(1:n, function(j) {
