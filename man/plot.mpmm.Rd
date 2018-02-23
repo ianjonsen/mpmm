@@ -7,10 +7,10 @@
 \method{plot}{mpmm}(m, page = 1)
 }
 \arguments{
-\item{page}{1 = plot all terms on a single page, 0 otherwise}
+\item{m}{a fitted object of class mpmm}
 
-\item{x}{a fitted object of class mpmm}
+\item{page}{1 = plot all terms on a single page, 0 otherwise}
 }
 \description{
-Plot fixed and random components
+Visualise fixed and random relationships
 }

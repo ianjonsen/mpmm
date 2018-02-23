@@ -1,9 +1,8 @@
-##' Plot fixed and random components
+##' Visualise fixed and random relationships
 ##'
 ##' @title plot
-##' @param x a fitted object of class mpmm
+##' @param m a fitted object of class mpmm
 ##' @param page 1 = plot all terms on a single page, 0 otherwise
-##'
 ##'
 ##' @importFrom lme4 nobars
 ##' @importFrom ggplot2 ggplot geom_line aes xlab ylab theme_bw element_text
@@ -37,17 +36,15 @@ if(dim(m$re)[2] == 2) {
   re_ints <- m$par["Intercept", "Estimate"] + m$re$`(Intercept)`
   k <- length(re_ints)
 
-  p <- lapply(1:n, function(j) {
-    re <- sapply(1:k, function(i) {
+  re <- lapply(1:n, function(j) {
       if(n > 1) {
-        browser()
-        plogis(re_ints[i] + betas[j] * xt[, j] + betas[-j] * xt.mn[-j])
+        plogis(outer(betas[j] * xt[, j] + betas[-j] * xt.mn[-j], re_ints, FUN = "+"))
       } else {
-        plogis(re_ints[i] + betas * xt)
+        plogis(outer(betas * xt, re_ints, FUN = "+"))
       }
-    })
-
-    pdat <- data.frame(x = xt[, j], g = re)
+})
+  p <- lapply(1:n, function(j) {
+    pdat <- data.frame(x = xt[, j], g = re[[j]])
     pdat <-
       reshape2::melt(
         pdat,
@@ -122,8 +119,9 @@ if(dim(m$re)[2] == 2) {
 if (n > 1 && page == 1) {
   grid.arrange(grobs = p, nrow = floor(sqrt(n)))
 } else if (n == 1 || page == 0) {
-  p
+  print(p)
 }
+invisible(p)
 }
 
 
