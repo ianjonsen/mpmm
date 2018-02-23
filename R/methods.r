@@ -32,8 +32,6 @@ anova.mpmm <- function (m, ...)
   ## borrows heavily from glmmTMB...
   mCall <- match.call(expand.dots = TRUE)
   dots <- list(...)
-  .sapply <- function(L, FUN, ...)
-    unlist(lapply(L, FUN, ...))
 
   ## detect multiple models, i.e. models in ...
   modp <- as.logical(vapply(dots, is, NA, "mpmm"))
@@ -82,8 +80,8 @@ anova.mpmm <- function (m, ...)
     dfChisq <- c(NA, diff(df))
     val <- data.frame(
       df = df,
-      AIC = .sapply(llks, AIC),
-      BIC = .sapply(llks, BIC),
+      AIC = unlist(lapply(llks, AIC)),
+      BIC = unlist(lapply(llks, BIC)),
       logLik = llk,
       deviance = -2 * llk,
       Chisq = chisq,
