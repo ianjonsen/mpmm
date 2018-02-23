@@ -23,9 +23,11 @@ f_int <- m$par["Intercept","Estimate"]
 betas <- sapply(1:n, function(i) m$par[terms[i],"Estimate"])
 
 fxd <- sapply(1:n, function(i) {
-  if(n > 1) {
+  if(n > 2) {
     plogis(f_int + betas[i] * xt[, i] + betas[-i] %*% xt.mn[-i])
-  } else {
+  } else if(n > 1){
+    plogis(f_int + betas[i] * xt[, i] + betas[-i] * xt.mn[-i])
+    } else {
     plogis(f_int + betas * xt)
   }
 })
