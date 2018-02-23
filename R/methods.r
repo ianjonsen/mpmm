@@ -29,6 +29,7 @@ logLik.mpmm <- function(m, ...) {
 ##' @export
 anova.mpmm <- function (m, ...)
 {
+  ## borrows heavily from glmmTMB...
   mCall <- match.call(expand.dots = TRUE)
   dots <- list(...)
   .sapply <- function(L, FUN, ...)
