@@ -259,6 +259,7 @@ mpmm <- function(
   ft <- attr(termf, "term.labels")
   rownames(fxd)[rownames(fxd) %in% "beta"] <- ft
 
+  ## FIXME:: need to simplify and organise...
   structure(
     list(
       call = call,
