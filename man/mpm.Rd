@@ -4,13 +4,11 @@
 \alias{mpm}
 \title{Random Walk with autocorrelation Filter}
 \usage{
-mpm(d, formula = NA, ts = 12, nu = 5, span = 0.4, optim = c("nlminb",
-  "optim"), verbose = FALSE)
+mpm(d, ts = 12, nu = 5, span = 0.4, optim = c("nlminb", "optim"),
+  verbose = FALSE)
 }
 \arguments{
 \item{d}{a data frame of observations (see details)}
-
-\item{formula}{a right-hand-side regression formula}
 
 \item{ts}{time-step in hours (used only when fitting to Argos data)}
 
@@ -24,7 +22,6 @@ mpm(d, formula = NA, ts = 12, nu = 5, span = 0.4, optim = c("nlminb",
 }
 \value{
 a list with components
-\item{\code{states}}{a dataframe of estimated states}
 \item{\code{fitted}}{a dataframe of fitted locations}
 \item{\code{par}}{model parameter summmary}
 \item{\code{data}}{input dataframe}
@@ -41,9 +38,10 @@ with or without measurement error
 The input track is given as a dataframe where each row is an
 observed location and columns
 \describe{
+\item{'id'}{individual identification,}
 \item{'date'}{observation time (POSIXct,GMT),}
+##' \item{'lc'}{ARGOS location class,}
 \item{'lon'}{observed longitude,}
-\item{'lat'}{observed latitude,}
-\item{'lc'}{ARGOS location class.}
+\item{'lat'}{observed latitude.}
 }
 }
