@@ -40,7 +40,7 @@ observed location and columns
 \describe{
 \item{'id'}{individual identification,}
 \item{'date'}{observation time (POSIXct,GMT),}
-##' \item{'lc'}{ARGOS location class,}
+\item{'lc'}{ARGOS location class,}
 \item{'lon'}{observed longitude,}
 \item{'lat'}{observed latitude.}
 }
