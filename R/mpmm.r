@@ -33,7 +33,7 @@
 ##' @importFrom lme4 nobars findbars subbars mkReTrms
 ##' @importFrom glmmTMB getReStruc splitForm
 ##' @importFrom Matrix t
-##' @importFrom dplyr %>%
+##' @importFrom dplyr %>% tbl_df data_frame
 ##' @importFrom TMB MakeADFun sdreport newtonOption
 ##' @export
 mpmm <- function(
