@@ -64,15 +64,6 @@ mpm <- function(d,
                           idx = idx
                         ))
          },
-         cov = {
-           data <- with(d,
-                        list(
-                          x = cbind(lon, lat),
-                          A = A,
-                          idx = idx,
-                          M = M
-                        ))
-         },
          rw_err = {
            data.tmb <- d %>%
              group_by(id) %>%
@@ -160,21 +151,8 @@ mpm <- function(d,
              log_sigma_g = 1,
              log_tau = c(0, 0)
            )
-         },
-         cov = {
-           n <- dim(M)[2]
-           p <- dim(M)[1]
-           parameters <- list(
-             B = rep(1, n),
-             lg = rep(1, p),
-             log_sigma = c(1, 1),
-             log_sigma_g = 2,
-             log_sigma_u = 2,
-#             log_sigma_b = 2,
-             u = rep(0, A)
-#             b = rep(0, A)
-           )
-         })
+         }
+         )
 
   ## TMB - create objective function
   switch(model,
@@ -195,16 +173,6 @@ mpm <- function(d,
                parameters,
                random = c("x", "lg"),
                DLL = "gamma_err",
-               silent = !verbose
-             )
-         },
-         cov = {
-           obj <-
-             MakeADFun(
-               data,
-               parameters,
-               random = c("u", "lg"),
-               DLL = "gamma_cov",
                silent = !verbose
              )
          })
@@ -233,23 +201,14 @@ mpm <- function(d,
 
   lg <- rdm[rownames(rdm) %in% "lg", ]
 
-  if (model == "cov") {
-    u <- rdm[rownames(rdm) %in% "u", ]
-#    b <- rdm[rownames(rdm) %in% "b", ]
-#    re <- data.frame(u = u[, 1], b = b[, 1]) %>%
-    re <- data.frame(u = u[, 1]) %>%
-      tbl_df()
-  }
-  if (model == "rw" || model == "cov") {
+  if (model == "rw") {
     fitted <- data_frame(
       id = d$id,
       date = d$date,
       g = plogis(lg[, 1]),
       g.se = lg[, 2]
     )
-  }
-
-  if (model == "rw_err") {
+  } else {
     x <- rdm[rownames(rdm) %in% "x",]
 
     fitted <- data_frame(
@@ -271,29 +230,10 @@ mpm <- function(d,
     aic <- 2 * length(opt[["par"]]) + 2 * opt[["value"]]
   }
 
-  if (model == "cov") {
-    row.names(fxd)[3:4] <- c("sigma_lon", "sigma_lat")
-    row.names(fxd)[5] <- "Intercept"
-    row.names(fxd)[6:nrow(fxd)] <-
-      attr(terms(formula), "term.labels")
-
-    list(
-      fitted = fitted,
-      par = fxd,
-      re = re,
-      data = d,
-      tmb = obj,
-      opt = opt,
-      rep = rep,
-      aic = aic
-    )
-
-  }
-  else {
     row.names(fxd)[2:3] <- c("sigma_lon", "sigma_lat")
     if(model == "rw_err") row.names(fxd)[4:5] <- c("tau_lon", "tau_lat")
 
-    list(
+    structure(list(
       fitted = fitted,
       par = fxd,
       data = d,
@@ -301,9 +241,8 @@ mpm <- function(d,
       opt = opt,
       rep = rep,
       aic = aic
+    ),
+    class = "mpmm"
     )
-
-  }
-
 
 }
