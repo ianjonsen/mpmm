@@ -6,22 +6,21 @@
 ##' The input track is given as a dataframe where each row is an
 ##' observed location and columns
 ##' \describe{
+##' \item{'id'}{individual identification,}
 ##' \item{'date'}{observation time (POSIXct,GMT),}
+##' ##' \item{'lc'}{ARGOS location class,}
 ##' \item{'lon'}{observed longitude,}
-##' \item{'lat'}{observed latitude,}
-##' \item{'lc'}{ARGOS location class.}
+##' \item{'lat'}{observed latitude.}
 ##' }
 ##'
 ##' @title Random Walk with autocorrelation Filter
 ##' @param d a data frame of observations (see details)
-##' @param formula a right-hand-side regression formula
 ##' @param ts time-step in hours (used only when fitting to Argos data)
 ##' @param nu degrees of freedom for t-distributed measurement error (used only when fitting to Argos data)
 ##' @param span degree of loess smoothing for location state starting values (used only when fitting to Argos data)
 ##' @param optim numerical optimizer
 ##' @param verbose report progress during minimization
 ##' @return a list with components
-##' \item{\code{states}}{a dataframe of estimated states}
 ##' \item{\code{fitted}}{a dataframe of fitted locations}
 ##' \item{\code{par}}{model parameter summmary}
 ##' \item{\code{data}}{input dataframe}
@@ -32,7 +31,6 @@
 ##' @importFrom ssmTMB argos2tmb amfCRAWL
 ##' @export
 mpm <- function(d,
-                formula = NA,
                 ts = 12,
                 nu = 5,
                 span = 0.4,
@@ -44,43 +42,18 @@ mpm <- function(d,
   A <- length(unique(d$id))
   idx <- c(0, cumsum(as.numeric(table(d$id))))
 
-  if (class(formula) == "logical") {
-    if ("lc" %in% names(d)) {
-      model = "rw_err"
-      compile("tmb/gamma_err.cpp")
-      dyn.load(dynlib("tmb/gamma_err"))
-    }
-    else {
-      model = "rw"
-      compile("tmb/gamma.cpp")
-      dyn.load(dynlib("tmb/gamma"))
-    }
+  if ("lc" %in% names(d)) {
+    model = "rw_err"
+    compile("tmb/gamma_err.cpp")
+    dyn.load(dynlib("tmb/gamma_err"))
   }
   else {
-    model = "cov"
-    compile("tmb/gamma_cov.cpp")
-    dyn.load(dynlib("tmb/gamma_cov"))
+    model = "rw"
+    compile("tmb/gamma.cpp")
+    dyn.load(dynlib("tmb/gamma"))
   }
 
-  if (model == "cov") {
-    # check that the formula is a formula
-    is.formula <- function(x)
-      tryCatch(
-        inherits(x, "formula"),
-        error = function(e) {
-          FALSE
-        }
-      )
-
-    if (!is.formula(formula))
-      stop("\n'formula' must be specified as ~ x + ... or ~ 1 for no covariates")
-
-    # check that there is no response variable in the formula
-    if (attr(terms(formula), "response") != 0)
-      stop("\n'formula' can not have a response variable")
-
-    M <- model.matrix(formula, d)
-  }
+  ## REMOVE ALL CODE ASSOCIATED WITH GAMMA_COV...SUPERCEDED BY MPMM
 
   switch(model,
          rw = {
