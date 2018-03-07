@@ -207,7 +207,8 @@ mpmm <- function(
     nlminb = nlminb(
       start = obj$par,
       objective = obj$fn,
-      gradient = obj$gr
+      gradient = obj$gr,
+      control = list(sing.tol = 1e-20)
     ),
     optim = do.call("optim", obj)
   )))
