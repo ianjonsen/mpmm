@@ -16,6 +16,7 @@
 ##' @param data a data frame of observations (see details)
 ##' @param method method for maximising the log-likelihood ("ML" or "REML")
 ##' @param optim numerical optimizer to be used (nlminb or optim)
+##' @param control a list of control parameters (currently only for nlminb)
 ##' @param verbose report progress during minimization
 ##' @return a list with components
 ##' \item{\code{states}}{a dataframe of estimated states}
@@ -41,6 +42,7 @@ mpmm <- function(
                 data = NULL,
                 method = "ML",
                 optim = c("nlminb", "optim"),
+                control = NULL,
                 verbose = FALSE) {
 
   call <- mf <- match.call()
@@ -208,7 +210,7 @@ mpmm <- function(
       start = obj$par,
       objective = obj$fn,
       gradient = obj$gr,
-      control = list(sing.tol = 1e-20)
+      control = control
     ),
     optim = do.call("optim", obj)
   )))
