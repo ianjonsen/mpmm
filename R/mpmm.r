@@ -189,7 +189,7 @@ mpmm <- function(
         random = rnd,
         profile = profile,
         DLL = "mpmm",
-        hessian = TRUE,
+      #  hessian = TRUE,
         silent = !verbose
       )
     )
@@ -200,7 +200,6 @@ mpmm <- function(
   obj$control <- list(trace = 0,
                       reltol = 1e-12,
                       maxit = 500)
-  obj$hessian <- TRUE
   newtonOption(obj, smartsearch = TRUE)
 
   ## Minimize objective function
