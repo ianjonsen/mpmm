@@ -214,7 +214,7 @@ mpmm <- function(
     optim = do.call("optim", obj)
   )))
 
-  cat("\n", opt.time, "\n")
+  cat(opt.time, "\n")
 
   ## Parameters, states and the fitted values
   rep <- sdreport(obj)
@@ -277,7 +277,8 @@ mpmm <- function(
       method = method,
       rep = rep,
       aic = aic,
-      bic = bic
+      bic = bic,
+      opt.time = opt.time
     ),
     class = "mpmm"
   )
