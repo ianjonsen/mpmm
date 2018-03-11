@@ -119,9 +119,9 @@ if(dim(m$re)[2] == 2) {
 if (n > 1 && page == 1) {
   grid.arrange(grobs = p, nrow = floor(sqrt(n)))
 } else if (n == 1 || page == 0) {
-  print(p)
+  p
 }
-invisible(p)
+
 }
 
 
