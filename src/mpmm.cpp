@@ -2,6 +2,7 @@
 
 using namespace density;
 
+// modified from glmmTMB
 // need to link to these via glmmTMB pkg but can't currently because they do not export C++
 template <class Type>
 struct per_term_info {
@@ -38,6 +39,7 @@ enum valid_covStruct {
   diag_covstruct = 0,
   us_covstruct   = 1
 };
+// would be better to have AR(1) corrStruct here to deal with serial dependence in animal tracks
 // need to link to these via glmmTMB pkg but can't currently because they do not export C++
 template <class Type>
 Type termwise_nll(array<Type> &U, vector<Type> theta, per_term_info<Type>& term) {
@@ -92,6 +94,7 @@ Type allterms_nll(vector<Type> &u, vector<Type> theta,
   return ans;
 }
 
+// mpmm model code
 template<class Type>
 Type objective_function<Type>::operator() ()
 {
