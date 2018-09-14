@@ -1,7 +1,7 @@
 Package: mpmm
 Type: Package
 Title: (animal) Move Persistence Mixed-effects Models
-Version: 0.1.0.9600
+Version: 0.1.0.9610
 Author: Ian Jonsen
 Maintainer: Ian Jonsen <ian.jonsen@mq.edu.au>
 Description: Fit covariates as linear mixed-effects within a random walk with time-varying move persistence (autocorrelation) model. 
