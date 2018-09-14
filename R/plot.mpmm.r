@@ -5,7 +5,7 @@
 ##' @param page 1 = plot all terms on a single page, 0 otherwise
 ##'
 ##' @importFrom lme4 nobars
-##' @importFrom ggplot2 ggplot geom_line aes xlab ylab theme_bw element_text
+##' @importFrom ggplot2 ggplot geom_line aes xlab ylab theme_bw theme ylim xlim element_text
 ##' @importFrom gridExtra grid.arrange
 ##' @importFrom reshape2 melt
 ##' @method plot mpmm

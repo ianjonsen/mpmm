@@ -5,7 +5,7 @@
 \title{Move Persistence Mixed-Effects Model}
 \usage{
 mpmm(formula = NA, data = NULL, method = "ML", optim = c("nlminb",
-  "optim"), verbose = FALSE)
+  "optim"), control = NULL, verbose = FALSE)
 }
 \arguments{
 \item{formula}{a right-hand-side regression formula (no response variable)}
@@ -15,6 +15,8 @@ mpmm(formula = NA, data = NULL, method = "ML", optim = c("nlminb",
 \item{method}{method for maximising the log-likelihood ("ML" or "REML")}
 
 \item{optim}{numerical optimizer to be used (nlminb or optim)}
+
+\item{control}{a list of control parameters (currently only for nlminb)}
 
 \item{verbose}{report progress during minimization}
 }

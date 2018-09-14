@@ -11,3 +11,6 @@
 
 \item{...}{additional mpmm model objects}
 }
+\description{
+perform likelihood ratio tests on 2 or more mpmm model objects
+}
