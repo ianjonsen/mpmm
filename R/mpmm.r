@@ -71,6 +71,18 @@ mpmm <- function(
   if(is.null(findbars(formula)))
     stop("\n formula must include a random component; e.g., ~ (1 | id)")
 
+  # check that covariates do not contain NA's
+  covars <- nobars(formula) %>% terms() %>% attr(., "term.labels")
+  nas <- is.na(data[, covars]) %>% apply(., 2, sum)
+  if (sum(nas) > 0)
+    stop(
+      paste0(
+        "\n NA's detected in the following covariates: ",
+        covars[which(nas > 0)],
+        "\n consider imputing values"
+      )
+    )
+
   # evaluate model frame
   m <- match(c("data", "subset", "na.action"),
              names(mf), 0L)
