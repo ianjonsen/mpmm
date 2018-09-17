@@ -4,7 +4,7 @@
 \alias{plot.mpmm}
 \title{plot}
 \usage{
-\method{plot}{mpmm}(m, page = 1)
+\method{plot}{mpmm}(m, label = FALSE, page = 1)
 }
 \arguments{
 \item{m}{a fitted object of class mpmm}

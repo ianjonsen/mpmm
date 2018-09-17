@@ -2,15 +2,16 @@
 ##'
 ##' @title plot
 ##' @param m a fitted object of class mpmm
+##' @param label add id labels to random effects (messy)
 ##' @param page 1 = plot all terms on a single page, 0 otherwise
 ##'
 ##' @importFrom lme4 nobars
-##' @importFrom ggplot2 ggplot geom_line aes xlab ylab theme_bw theme ylim xlim element_text
+##' @importFrom ggplot2 ggplot geom_line aes xlab ylab theme_bw theme ylim xlim element_text geom_text
 ##' @importFrom gridExtra grid.arrange
 ##' @importFrom reshape2 melt
 ##' @method plot mpmm
 ##' @export
-plot.mpmm <- function(m, page = 1) {
+plot.mpmm <- function(m, label = FALSE, page = 1) {
 
 terms <- attr(terms(nobars(m$formula)), "term.labels")
 n <- length(terms)
@@ -52,18 +53,24 @@ if(dim(m$re)[2] == 2) {
         value.name = "g",
         variable.name = "Intercept"
       )
+    pdat <- data.frame(id = rep(as.character(m$re$id), each = 200), pdat)
     pdat1 <- data.frame(x=xt[,j], y=fxd[,j])
+    if(label) pdat.lab <- pdat[seq(1, 2001, by = 200),]
 
-    ggplot() + theme(axis.text = element_text(size = 14),
+    gg <- ggplot() + theme(axis.text = element_text(size = 14),
                      axis.title = element_text(size = 20)) +
       geom_line(aes(pdat$x, pdat$g, group = pdat$Intercept),
                 size = 0.2,
-                colour = "dodgerblue") +
+                colour = "dodgerblue")
+    if(label) {
+      gg <- gg +
+        geom_text(data = pdat.lab, aes(x, g, label = id), hjust = 0, size = 3)
+    }
+    gg <- gg +
       geom_line(aes(pdat1$x, pdat1$y), size = 1, colour = "firebrick") +
       xlab(terms[j]) +
       ylab(expression(gamma[t])) +
       ylim(0,1) +
-
       theme_bw()
   })
 } else {
@@ -101,21 +108,31 @@ if(dim(m$re)[2] == 2) {
       value.name = "g",
       variable.name = "re"
     )
-    pdat1 <- data.frame(x=xt[,j], y=fxd[,j])
-
-    ggplot() + theme(axis.text = element_text(size = 14),
+    pdat <- data.frame(id = rep(as.character(m$re$id), each = 200), pdat)
+    pdat.f <- data.frame(x=xt[,j], y=fxd[,j])
+    if(label) pdat.lab <- pdat[seq(1, 2001, by = 200),]
+    gg <- ggplot() +
+      theme(axis.text = element_text(size = 14),
                      axis.title = element_text(size = 20)) +
-      geom_line(aes(pdat$x, pdat$g, group = pdat$re),
+    geom_line(data = pdat,
+                aes(x, g, group = re),
                 size = 0.2,
-                colour = "dodgerblue") +
-      geom_line(aes(pdat1$x, pdat1$y), size = 1, colour = "firebrick") +
+                colour = "dodgerblue")
+    if(label) {
+      gg <- gg +
+        geom_text(data = pdat.lab, aes(x, g, label = id), hjust = 0, size = 3)
+    }
+    gg <- gg +
+      geom_line(data = pdat.f, aes(x, y), size = 1, colour = "firebrick") +
       xlab(terms[j]) +
       ylab(expression(gamma[t])) +
       ylim(0,1) +
       theme_bw()
+    gg
 })
 
 }
+
 if (n > 1 && page == 1) {
   grid.arrange(grobs = p, nrow = floor(sqrt(n)))
 } else if (n == 1 || page == 0) {
