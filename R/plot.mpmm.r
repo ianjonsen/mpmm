@@ -8,6 +8,7 @@
 ##' @importFrom lme4 nobars
 ##' @importFrom ggplot2 ggplot geom_line aes xlab ylab theme_bw theme ylim xlim element_text geom_text
 ##' @importFrom gridExtra grid.arrange
+##' @importFrom stats plogis
 ##' @importFrom reshape2 melt
 ##' @method plot mpmm
 ##' @export
