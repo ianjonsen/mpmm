@@ -9,6 +9,8 @@
 \arguments{
 \item{m}{a fitted object of class mpmm}
 
+\item{label}{add id labels to random effects (messy)}
+
 \item{page}{1 = plot all terms on a single page, 0 otherwise}
 }
 \description{
