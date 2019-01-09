@@ -47,7 +47,7 @@ if(dim(m$re)[2] == 2) {
   p <- lapply(1:n, function(j) {
     pdat <- data.frame(x = xt[, j], g = re[[j]])
     pdat <-
-      reshape2::melt(
+      melt(
         pdat,
         id.vars = "x",
         value.name = "g",
@@ -102,7 +102,7 @@ if(dim(m$re)[2] == 2) {
   })
   p <- lapply(1:n, function(j) {
     pdat <- data.frame(x = xt[, j], g = t(re[[j]]))
-    pdat <- reshape2::melt(
+    pdat <- melt(
       pdat,
       id.vars = "x",
       value.name = "g",

@@ -46,7 +46,7 @@ observed location and columns
 }
 \examples{
 data(ellie.ice)
-fit <- mpmm(~ ice + (1 | id), data = d.ice)
+fit <- mpmm(~ ice + (1 | id), data = ellie.ice)
 summary(fit)
 
 }

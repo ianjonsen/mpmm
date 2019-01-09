@@ -27,7 +27,7 @@
 ##' \item{\code{opt}}{the object returned by the optimizer}
 ##' @examples
 ##' data(ellie.ice)
-##' fit <- mpmm(~ ice + (1 | id), data = d.ice)
+##' fit <- mpmm(~ ice + (1 | id), data = ellie.ice)
 ##' summary(fit)
 ##'
 ##' @useDynLib mpmm
