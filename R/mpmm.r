@@ -8,6 +8,7 @@
 ##' \item{'date'}{observation time (POSIXct,GMT),}
 ##' \item{'lon'}{observed longitude,}
 ##' \item{'lat'}{observed latitude,}
+##' \item{'tid'}{identifier for tracks if there are more than one track per individual (optional),}
 ##' \item{'...'}{named covariates appended to track}
 ##' }
 ##'
@@ -47,6 +48,14 @@ mpmm <- function(
 
   call <- mf <- match.call()
   optim <- match.arg(optim)
+
+  # Create a tid column if there is none specified
+  if(all(colnames(data) != "tid")){
+    data$tid <- NA
+  }
+
+  # ordering the data to make sure we have continuous tracks and ids are ordered
+  data <- data %>% arrange(id, tid, date)
 
   # check that the formula is a formula
   is.formula <- function(x)
@@ -137,14 +146,15 @@ mpmm <- function(
   # num observations
   nobs <- nrow(fr)
 
-  # num animals within group
-  A <- sapply(reTrms$flist, nlevels)
+  # Number of tracks (or individual if only one track per individual)
+  A <- nrow(count(data, id, tid))
 
   # num random effects
   #nre <- sapply(reTrms$cnms, length) %>% sum()
 
-  ## get index of observations per group level - nominally individual animals
-  idx <- data$id %>%
+  # get index of start and end of tracks
+  data <- data %>% mutate(idtid = paste(id, tid, sep=""))
+  idx <- data$idtid %>%
     table() %>%
     as.numeric() %>%
     cumsum() %>%
@@ -242,7 +252,8 @@ mpmm <- function(
   ## get number of random terms
   nrt <- sapply(data.tmb$terms, function(x)
     x$blockSize) %>% sum()
-  ret <- matrix(b[, "Estimate"], A, nrt, byrow = TRUE) %>%
+  nl <- sapply(reTrms$flist, nlevels)
+  ret <- matrix(b[, "Estimate"], nl, nrt, byrow = TRUE) %>%
     as.data.frame() %>%
     data.frame(unique(reTrms$flist[[1]]), .) %>%
     tbl_df()
