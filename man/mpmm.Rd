@@ -41,6 +41,7 @@ observed location and columns
 \item{'date'}{observation time (POSIXct,GMT),}
 \item{'lon'}{observed longitude,}
 \item{'lat'}{observed latitude,}
+\item{'tid'}{identifier for tracks if there are more than one track per individual (optional),}
 \item{'...'}{named covariates appended to track}
 }
 }
