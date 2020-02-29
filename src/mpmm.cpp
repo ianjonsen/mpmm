@@ -103,6 +103,7 @@ Type objective_function<Type>::operator() ()
   DATA_SPARSE_MATRIX(Z);            // random effects design sparse matrix
   DATA_MATRIX(ll);                  // locations
   DATA_FACTOR(idx);                 // cumsum of number of locations for each animal
+  DATA_VECTOR(di);                  // di is time interval between ll_i and ll_{i-1}
 
   // Define covariance structure for the conditional model
   DATA_STRUCT(terms, terms_t);
@@ -122,17 +123,14 @@ vector<Type> gamma = Type(1.0) / (Type(1.0) + exp(-lg));
 vector<Type> sigma = exp(log_sigma);
 Type sigma_g = exp(log_sigma_g);
 
-// 2x2 covariance matrix for innovations
+// 2x2 covariance matrix for innovations - diag in loop
 matrix<Type> cov(2, 2);
-cov(0,0) = sigma(0) * sigma(0);
 cov(0,1) = 0.0;
 cov(1,0) = 0.0;
-cov(1,1) = sigma(1) * sigma(1);
 
 Type jnll = 0.0;
 vector<Type> mu(2);
 
-MVNORM_t<Type> nll_dens(cov);
 int i,j;
 
 // Random intercept & slope(s)
@@ -147,7 +145,11 @@ vector<Type> eta = X * beta + Z * b;
     }
 
     for(j = (idx(i)+2); j < idx(i+1); ++j){
-      mu = ll.row(j) - ll.row(j-1) - gamma(j-1) * (ll.row(j-1) - ll.row(j-2));  // first diff RW on locations
+      mu = ll.row(j) - ll.row(j-1) - gamma(j-1) * (di(j)/di(j-1)) * (ll.row(j-1) - ll.row(j-2));  // first diff RW on locations
+      // var-cov depends on time interval
+      cov(0,0) = sigma(0) * sigma(0) * di(j) * di(j);
+      cov(1,1) = sigma(1) * sigma(1) * di(j) * di(j);
+      MVNORM_t<Type> nll_dens(cov);
       jnll += nll_dens(mu);
     }
   }

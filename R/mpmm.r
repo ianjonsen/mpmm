@@ -19,6 +19,7 @@
 ##' @param optim numerical optimizer to be used (nlminb or optim)
 ##' @param control a list of control parameters (currently only for nlminb)
 ##' @param verbose report progress during minimization
+##' @param model "mpmm" or "mpmm_dt", "mpmm" is the default value and is for a model with regular time intervals between locations, "mpmm_dt" is for irregular time intervals.
 ##' @return a list with components
 ##' \item{\code{states}}{a dataframe of estimated states}
 ##' \item{\code{fitted}}{a dataframe of fitted locations}
@@ -44,7 +45,8 @@ mpmm <- function(
                 method = "ML",
                 optim = c("nlminb", "optim"),
                 control = NULL,
-                verbose = FALSE) {
+                verbose = FALSE,
+                model = "mpmm") {
 
   call <- mf <- match.call()
   optim <- match.arg(optim)
@@ -160,18 +162,31 @@ mpmm <- function(
     cumsum() %>%
     c(0, .)
 
+  # Create dt vector if model is mpmm_dt
+  # dt = t_i - t_{i-1} and include in data.tmb
+  if(model == "mpmm_dt"){
+    data$di <- c(NA, diff(data$date))
+    data$di[idx[1:(length(idx)-1)] + 1] <- NA
+    # Scale to median
+    data$di <- data$di/median(data$di, na.rm=TRUE)
+  }else{
+    data$di <- 1
+  }
+
   ## build data for TMB
   data.tmb <- list(
     X     = condList$X,
     Z     = condList$Z,
     ll    = cbind(data$lon, data$lat),
     idx   = idx,
+    di   = data$di,
     A     = A,
     terms = condReStruc
   )
 
   getVal <- function(obj, component)
     vapply(obj, function(x) x[[component]], numeric(1))
+
 
   param <- with(data.tmb,
                      list(
