@@ -5,7 +5,7 @@
 \title{Move Persistence Mixed-Effects Model}
 \usage{
 mpmm(formula = NA, data = NULL, method = "ML", optim = c("nlminb",
-  "optim"), control = NULL, verbose = FALSE)
+  "optim"), control = NULL, verbose = FALSE, model = "mpmm")
 }
 \arguments{
 \item{formula}{a right-hand-side regression formula (no response variable)}
@@ -19,6 +19,8 @@ mpmm(formula = NA, data = NULL, method = "ML", optim = c("nlminb",
 \item{control}{a list of control parameters (currently only for nlminb)}
 
 \item{verbose}{report progress during minimization}
+
+\item{model}{"mpmm" or "mpmm_dt", "mpmm" is the default value and is for a model with regular time intervals between locations, "mpmm_dt" is for irregular time intervals.}
 }
 \value{
 a list with components
