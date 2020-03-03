@@ -101,7 +101,7 @@ Type objective_function<Type>::operator() ()
 
   DATA_MATRIX(X);                   // fixed effects design matrix
   DATA_SPARSE_MATRIX(Z);            // random effects design sparse matrix
-  DATA_MATRIX(ll);                  // locations
+  DATA_ARRAY(ll);                  // locations
   DATA_FACTOR(idx);                 // cumsum of number of locations for each animal
   DATA_VECTOR(di);                  // di is time interval between ll_i and ll_{i-1}
 
@@ -110,6 +110,9 @@ Type objective_function<Type>::operator() ()
 
   DATA_INTEGER(A);                // number of animals
 
+  // For one-step-ahead resisuals
+  DATA_ARRAY_INDICATOR(keep, ll);
+  
   PARAMETER_VECTOR(lg);		          // move autocorrelation parameter (gamma on link scale)
   PARAMETER_VECTOR(beta);           // fixed regression coefficients (link scale)
   PARAMETER_VECTOR(b);              // random intercept & slope terms
@@ -145,12 +148,12 @@ vector<Type> eta = X * beta + Z * b;
     }
 
     for(j = (idx(i)+2); j < idx(i+1); ++j){
-      mu = ll.row(j) - ll.row(j-1) - gamma(j-1) * (di(j)/di(j-1)) * (ll.row(j-1) - ll.row(j-2));  // first diff RW on locations
+      mu = ll.matrix().row(j) - ll.matrix().row(j-1) - gamma(j-1) * (di(j)/di(j-1)) * (ll.matrix().row(j-1) - ll.matrix().row(j-2));  // first diff RW on locations
       // var-cov depends on time interval
       cov(0,0) = sigma(0) * sigma(0) * di(j) * di(j);
       cov(1,1) = sigma(1) * sigma(1) * di(j) * di(j);
       MVNORM_t<Type> nll_dens(cov);
-      jnll += nll_dens(mu);
+      jnll += nll_dens(mu, keep.matrix().row(j));
     }
   }
 
