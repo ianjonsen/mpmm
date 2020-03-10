@@ -4,8 +4,8 @@
 ##' @param m a fitted object of class mpmm
 ##' @param method Character naming the method to calculate one-step-ahead residuals
 ##'
-##' @importFrom TMB oneStepPredict
 ##' @importFrom tibble tibble
+##' @importFrom parallel detectCores
 ##' @method residuals mpmm
 ##' @return a list with components
 ##' \item{\code{res}}{a tibble with one-step-ahead residuals for longitude and latitude}
@@ -23,14 +23,18 @@
 ##' }
 ##' @export
 
-residuals.mpmm <- function(m, method="oneStepGaussianOffMode") {
+residuals.mpmm <- function(m, method="oneStepGaussianOffMode", trace = FALSE, parallel = TRUE, ncores = detectCores() - 1) {
 
   kidx <- as.vector(t(matrix(1:length(cbind(m$data$lon, m$data$lat)), ncol=2)))
-  mpmmres <- oneStepPredict(m$tmb, observation.name ="ll",
+  if(parallel)  sprintf("calculating residuals in parallel across %d cores...", ncores)
+  mpmmres <- TMBoneStepPredict(m$tmb, observation.name ="ll",
                             data.term.indicator = "keep",
                             method = method,
                             discrete = FALSE,
-                            subset = kidx, trace=FALSE)
+                            subset = kidx,
+                            trace = trace,
+                            parallel = parallel,
+                            ncores = ncores)
   res <-  tibble(id = m$data$id, date = m$data$date, res.lon = mpmmres[seq(1, nrow(mpmmres), by=2), "residual"],
                 res.lat = mpmmres[seq(2, nrow(mpmmres), by=2), "residual"])
   return(res)

@@ -4,8 +4,15 @@
 \alias{mpmm}
 \title{Move Persistence Mixed-Effects Model}
 \usage{
-mpmm(formula = NA, data = NULL, method = "ML", optim = c("nlminb",
-  "optim"), control = NULL, verbose = FALSE, model = "mpmm")
+mpmm(
+  formula = NA,
+  data = NULL,
+  method = "ML",
+  optim = c("nlminb", "optim"),
+  control = NULL,
+  verbose = FALSE,
+  model = "mpmm"
+)
 }
 \arguments{
 \item{formula}{a right-hand-side regression formula (no response variable)}

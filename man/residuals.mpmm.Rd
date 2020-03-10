@@ -4,7 +4,13 @@
 \alias{residuals.mpmm}
 \title{residuals}
 \usage{
-\method{residuals}{mpmm}(m, method = "oneStepGaussianOffMode")
+\method{residuals}{mpmm}(
+  m,
+  method = "oneStepGaussianOffMode",
+  trace = FALSE,
+  parallel = TRUE,
+  ncores = detectCores() - 1
+)
 }
 \arguments{
 \item{m}{a fitted object of class mpmm}
