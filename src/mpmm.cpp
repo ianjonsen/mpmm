@@ -112,7 +112,7 @@ Type objective_function<Type>::operator() ()
 
   // For one-step-ahead resisuals
   DATA_ARRAY_INDICATOR(keep, ll);
-  
+
   PARAMETER_VECTOR(lg);		          // move autocorrelation parameter (gamma on link scale)
   PARAMETER_VECTOR(beta);           // fixed regression coefficients (link scale)
   PARAMETER_VECTOR(b);              // random intercept & slope terms
@@ -148,10 +148,12 @@ vector<Type> eta = X * beta + Z * b;
     }
 
     for(j = (idx(i)+2); j < idx(i+1); ++j){
-      mu = ll.matrix().row(j) - ll.matrix().row(j-1) - gamma(j-1) * (di(j)/di(j-1)) * (ll.matrix().row(j-1) - ll.matrix().row(j-2));  // first diff RW on locations
       // var-cov depends on time interval
+      cov.setZero();
       cov(0,0) = sigma(0) * sigma(0) * di(j) * di(j);
       cov(1,1) = sigma(1) * sigma(1) * di(j) * di(j);
+      mu = ll.matrix().row(j) - ll.matrix().row(j-1) - gamma(j-1) * (di(j)/di(j-1)) * (ll.matrix().row(j-1) - ll.matrix().row(j-2));  // first diff RW on locations
+
       MVNORM_t<Type> nll_dens(cov);
       jnll += nll_dens(mu, keep.matrix().row(j));
     }

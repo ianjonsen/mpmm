@@ -1,7 +1,7 @@
 ##' Fit a move persistence random walk via TMB to a pre-filtered/regularised animal
 ##'   track and estimate gamma as a linear function of covariates
 ##'
-##' The input track is given as a dataframe where each row is an
+##' The input track is given as a tibble grouped by id (and optionally tid) where each row is an
 ##' observed location and columns
 ##' \describe{
 ##' \item{'id'}{individual animal identifier,}
@@ -14,7 +14,7 @@
 ##'
 ##' @title Move Persistence Mixed-Effects Model
 ##' @param formula a right-hand-side regression formula (no response variable)
-##' @param data a data frame of observations (see details)
+##' @param data a tibble of observations, grouped by at least 'id' (see details)
 ##' @param method method for maximising the log-likelihood ("ML" or "REML")
 ##' @param optim numerical optimizer to be used (nlminb or optim)
 ##' @param control a list of control parameters (currently only for nlminb)
@@ -36,7 +36,7 @@
 ##' @importFrom lme4 nobars findbars subbars mkReTrms
 ##' @importFrom glmmTMB getReStruc splitForm
 ##' @importFrom Matrix t
-##' @importFrom dplyr %>% arrange count mutate tbl_df data_frame
+##' @importFrom dplyr %>% arrange count mutate tbl_df data_frame is.grouped_df group_by
 ##' @importFrom TMB MakeADFun sdreport newtonOption
 ##' @export
 mpmm <- function(
@@ -50,6 +50,12 @@ mpmm <- function(
 
   call <- mf <- match.call()
   optim <- match.arg(optim)
+
+  # check that data contains an 'id' variable
+  if(!"id" %in% names(data)) stop("data must contain an id variable")
+
+  # check that data is a grouped tibble
+  if(!is.grouped_df(data)) stop("data must be grouped by 'id' and (optionally) 'tid'")
 
   # Create a tid column if there is none specified
   if(all(colnames(data) != "tid")){
