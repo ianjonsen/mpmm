@@ -57,14 +57,6 @@ mpmm <- function(
   # check that data is a grouped tibble
   if(!is.grouped_df(data)) stop("data must be grouped by 'id' and (optionally) 'tid'")
 
-  # Create a tid column if there is none specified
-  if(all(colnames(data) != "tid")){
-    data$tid <- NA
-  }
-
-  # ordering the data to make sure we have continuous tracks and ids are ordered
-  data <- data %>% arrange(id, tid, date)
-
   # check that the formula is a formula
   is.formula <- function(x)
     tryCatch(
@@ -99,6 +91,14 @@ mpmm <- function(
         "\n consider imputing values"
       )
     )
+
+  # Create a tid column if there is none specified
+  if(all(colnames(data) != "tid")){
+    data$tid <- NA
+  }
+
+  # ordering the data to make sure we have continuous tracks and ids are ordered
+  data <- data %>% arrange(id, tid, date)
 
   # evaluate model frame
   m <- match(c("data", "subset", "na.action"),
