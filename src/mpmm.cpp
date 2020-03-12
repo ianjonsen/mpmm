@@ -144,7 +144,7 @@ vector<Type> eta = X * beta + Z * b;
 
   for(i = 0; i < A; ++i) {
     for(j = idx(i); j < idx(i+1); ++j) {
-      jnll -= dnorm(lg(j), eta(j), di(j) * sigma_g, true);
+      jnll -= dnorm(lg(j), eta(j), sigma_g, true);
     }
 
     for(j = (idx(i)+2); j < idx(i+1); ++j){
