@@ -112,7 +112,7 @@ Type objective_function<Type>::operator() ()
 
   // For one-step-ahead resisuals
   DATA_ARRAY_INDICATOR(keep, ll);
-  
+
   PARAMETER_VECTOR(lg);		          // move autocorrelation parameter (gamma on link scale)
   PARAMETER_VECTOR(beta);           // fixed regression coefficients (link scale)
   PARAMETER_VECTOR(b);              // random intercept & slope terms
@@ -144,7 +144,7 @@ vector<Type> eta = X * beta + Z * b;
 
   for(i = 0; i < A; ++i) {
     for(j = idx(i); j < idx(i+1); ++j) {
-      jnll -= dnorm(lg(j), eta(j), sigma_g, true);
+      jnll -= dnorm(lg(j), eta(j), di(j) * sigma_g, true);
     }
 
     for(j = (idx(i)+2); j < idx(i+1); ++j){
