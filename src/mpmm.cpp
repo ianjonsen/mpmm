@@ -143,12 +143,13 @@ jnll += allterms_nll(b, theta, terms);
 vector<Type> eta = X * beta + Z * b;
 
   for(i = 0; i < A; ++i) {
-    for(j = idx(i); j < idx(i+1); ++j) {
-      jnll -= dnorm(lg(j), eta(j), sigma_g, true);
+    jnll -= dnorm(lg(idx(i)), eta(idx(i)), sigma_g, true);
+    for(j = (idx(i)+1); j < idx(i+1); ++j) {
+      jnll -= dnorm(lg(j), eta(j), di(j) * sigma_g, true);
     }
 
     for(j = (idx(i)+2); j < idx(i+1); ++j){
-      mu = ll.matrix().row(j) - ll.matrix().row(j-1) - gamma(j-1) * (di(j)/di(j-1)) * (ll.matrix().row(j-1) - ll.matrix().row(j-2));  // first diff RW on locations
+      mu = ll.matrix().row(j) - ll.matrix().row(j-1) - gamma(j) * (di(j)/di(j-1)) * (ll.matrix().row(j-1) - ll.matrix().row(j-2));  // first diff RW on locations
       // var-cov depends on time interval
       cov(0,0) = sigma(0) * sigma(0) * di(j) * di(j);
       cov(1,1) = sigma(1) * sigma(1) * di(j) * di(j);
