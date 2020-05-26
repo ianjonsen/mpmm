@@ -4,13 +4,20 @@
 \alias{mpmm}
 \title{Move Persistence Mixed-Effects Model}
 \usage{
-mpmm(formula = NA, data = NULL, method = "ML", optim = c("nlminb",
-  "optim"), control = NULL, verbose = FALSE, model = "mpmm")
+mpmm(
+  formula = NA,
+  data = NULL,
+  method = "ML",
+  optim = c("nlminb", "optim"),
+  control = NULL,
+  verbose = FALSE,
+  model = "mpmm"
+)
 }
 \arguments{
 \item{formula}{a right-hand-side regression formula (no response variable)}
 
-\item{data}{a tibble of observations, grouped by at least 'id' (see details)}
+\item{data}{a data frame of observations (see details)}
 
 \item{method}{method for maximising the log-likelihood ("ML" or "REML")}
 
@@ -36,7 +43,7 @@ Fit a move persistence random walk via TMB to a pre-filtered/regularised animal
   track and estimate gamma as a linear function of covariates
 }
 \details{
-The input track is given as a tibble grouped by id (and optionally tid) where each row is an
+The input track is given as a dataframe where each row is an
 observed location and columns
 \describe{
 \item{'id'}{individual animal identifier,}

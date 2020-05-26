@@ -36,7 +36,7 @@
 ##' @importFrom lme4 nobars findbars subbars mkReTrms
 ##' @importFrom glmmTMB getReStruc splitForm
 ##' @importFrom Matrix t
-##' @importFrom dplyr %>% arrange count mutate tbl_df data_frame
+##' @importFrom dplyr %>% arrange count mutate as_tibble tibble
 ##' @importFrom TMB MakeADFun sdreport newtonOption
 ##' @export
 mpmm <- function(
@@ -83,6 +83,8 @@ mpmm <- function(
     stop("\n formula must include a random component; e.g., ~ (1 | id)")
 
   # check that covariates do not contain NA's
+  ## should add proper na.action to model frame...
+  ## could add prior to handle missing values...
   covars <- nobars(formula) %>% terms() %>% attr(., "term.labels")
   nas <- is.na(data[, covars]) %>% apply(., 2, sum)
   if (sum(nas) > 0)
@@ -109,6 +111,7 @@ mpmm <- function(
 
   # strip random part of formula
   ff <- nobars(formula)
+  # num observations
   nobs <- nrow(fr)
 
   # build fixed effects model matrix X
@@ -144,9 +147,6 @@ mpmm <- function(
   condReStruc <- with(condList, getReStruc(reTrms, ss))
 
   gnm <- names(condList$reTrms$flist)
-
-  # num observations
-  nobs <- nrow(fr)
 
   # Number of tracks (or individual if only one track per individual)
   A <- nrow(count(data, id, tid))
@@ -271,11 +271,11 @@ mpmm <- function(
   ret <- matrix(b[, "Estimate"], nl, nrt, byrow = TRUE) %>%
     as.data.frame() %>%
     data.frame(unique(reTrms$flist[[1]]), .) %>%
-    tbl_df()
+    as_tibble()
   names(ret) <- nms
 
   ## build table of gamma estimates
-  fitted <- data_frame(
+  fitted <- tibble(
     id = data$id,
     date = data$date,
     g = plogis(lg[, 1]),
