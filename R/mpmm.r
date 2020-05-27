@@ -47,6 +47,7 @@ mpmm <- function(
                 control = NULL,
                 verbose = FALSE,
                 model = "mpmm") {
+  st <- proc.time()
 
   call <- mf <- match.call()
   optim <- match.arg(optim)
@@ -240,18 +241,26 @@ mpmm <- function(
   newtonOption(obj, smartsearch = TRUE)
 
   ## Minimize objective function
-  opt.time <- system.time(opt <- suppressWarnings(switch(
-    optim,
-    nlminb = nlminb(
-      start = obj$par,
-      objective = obj$fn,
-      gradient = obj$gr,
-      control = control
-    ),
-    optim = do.call("optim", obj)
-  )))
-
-  cat(opt.time, "\n")
+  opt <- suppressWarnings(switch(optim,
+                                 nlminb = try(nlminb(
+                                   start = obj$par,
+                                   objective = obj$fn,
+                                   gradient = obj$gr,
+                                   control = control
+    ))
+    ,
+    optim = try(do.call(
+      optim,
+      args = list(
+        par = obj$par,
+        fn = obj$fn,
+        gr = obj$gr,
+        method = "L-BFGS-B",
+        control = control,
+        lower = NULL,
+        upper = NULL
+      )
+  ))))
 
   ## Parameters, states and the fitted values
   rep <- sdreport(obj)
@@ -298,6 +307,9 @@ mpmm <- function(
 
   ft <- attr(termf, "term.labels")
   rownames(fxd)[rownames(fxd) %in% "beta"] <- ft
+
+  opt.time <- proc.time() - st
+  cat(opt.time, "\n")
 
   ## FIXME:: need to simplify and organise...
   structure(
