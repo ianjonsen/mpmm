@@ -43,7 +43,7 @@ mpmm <- function(
                 formula = NA,
                 data = NULL,
                 method = "ML",
-                optim = c("nlminb", "optim"),
+                optim = c("optim", "nlminb"),
                 control = NULL,
                 verbose = FALSE,
                 model = "mpmm") {
@@ -180,7 +180,8 @@ mpmm <- function(
     Z     = condList$Z,
     ll    = cbind(data$lon, data$lat),
     idx   = idx,
-    di   = data$di,
+    di    = data$di,
+    model = ifelse(model == "mpmm", 0, 1),
     A     = A,
     terms = condReStruc
   )
@@ -227,7 +228,8 @@ mpmm <- function(
         random = rnd,
         profile = profile,
         DLL = "mpmm",
-      #  hessian = TRUE,
+        hessian = FALSE,
+        method = "L-BFGS-B",
         silent = !verbose
       )
     )
@@ -236,8 +238,8 @@ mpmm <- function(
   obj$env$tracemgc <- verbose
 
   obj$control <- list(trace = 0,
-                      reltol = 1e-12,
-                      maxit = 500)
+                      reltol = 1e-08,
+                      maxit = 100)
   newtonOption(obj, smartsearch = TRUE)
 
   ## Minimize objective function
