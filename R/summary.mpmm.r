@@ -16,8 +16,8 @@ summary.mpmm <- function(fit, ...) {
     data.frame(
       AIC      = fit$aic,
       BIC      = fit$bic,
-      logLik   = -1 * fit$opt$objective,
-      deviance = fit$opt$objective * 2,
+      logLik   = ifelse("objective" %in% names(fit$opt),  -1 * fit$opt$objective, -1 * fit$opt$value),
+      deviance = ifelse("objective" %in% names(fit$opt), fit$opt$objective * 2, fit$opt$value * 2),
       df.resid = nobs - length(fit$tmb$par)
     )
   }

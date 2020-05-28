@@ -192,15 +192,14 @@ mpmm <- function(
 
   param <- with(data.tmb,
                      list(
-                       lg          = rep(1, nobs),
-                       beta        = rep(1, ncol(X)),
-                       b           = rep(1, ncol(Z)),
+                       lg          = rep(0, nobs),
+                       beta        = rep(0, ncol(X)),
+                       b           = rep(0, ncol(Z)),
                        log_sigma   = c(0,0),
                        log_sigma_g = 0,
                        theta       = rep(0, sum(getVal(condReStruc, "blockNumTheta")))
                      ))
   rnd <- c("lg", if(ncol(data.tmb$Z) > 0) "b")
-
 
   forTMB <- list(data = data.tmb,
               param = param,
@@ -238,9 +237,27 @@ mpmm <- function(
   obj$env$tracemgc <- verbose
 
   obj$control <- list(trace = 0,
-                      reltol = 1e-08,
-                      maxit = 100)
+                      reltol = 1e-12,
+                      maxit = 500)
   newtonOption(obj, smartsearch = TRUE)
+
+  ## add par values to trace if verbose = TRUE
+  myfn <- function(x) {
+    print("pars:")
+    print(x)
+    obj$fn(x)
+  }
+
+  ## Set parameter bounds - most are -Inf, Inf
+  L = c(beta = rep(-1000, ncol(X)),
+        log_sigma=c(-500,-500),
+        log_sigma_g = -500,
+        theta = rep(-Inf, sum(getVal(condReStruc, "blockNumTheta"))))
+
+  U = c(beta = rep(1000, ncol(X)),
+        log_sigma=c(1000,1000),
+        log_sigma_g = 1000,
+        theta = rep(Inf, sum(getVal(condReStruc, "blockNumTheta"))))
 
   ## Minimize objective function
   opt <- suppressWarnings(switch(optim,
@@ -248,19 +265,21 @@ mpmm <- function(
                                    start = obj$par,
                                    objective = obj$fn,
                                    gradient = obj$gr,
-                                   control = control
+                                   control = control,
+                                   lower = L,
+                                   upper = U
     ))
     ,
     optim = try(do.call(
       optim,
       args = list(
         par = obj$par,
-        fn = obj$fn,
+        fn = myfn, #obj$fn,
         gr = obj$gr,
         method = "L-BFGS-B",
         control = control,
-        lower = NULL,
-        upper = NULL
+        lower = L,
+        upper = U
       )
   ))))
 

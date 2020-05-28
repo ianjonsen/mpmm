@@ -150,9 +150,9 @@ vector<Type> eta = X * beta + Z * b;
 
     for(j = (idx(i)+1); j < idx(i+1); ++j) {
       if(model == 0) {
-        jnll -= dnorm(lg(j), lg(j-1) + eta(j), sigma_g, true);
+        jnll -= dnorm(lg(j), eta(j), sigma_g, true);
       } else if(model == 1) {
-        jnll -= dnorm(lg(j), lg(j-1) + eta(j), di(j) * sigma_g, true);
+        jnll -= dnorm(lg(j), eta(j), di(j) * sigma_g, true);
       }
     }
 
@@ -164,7 +164,7 @@ vector<Type> eta = X * beta + Z * b;
 
       for(j = (idx(i)+2); j < idx(i+1); ++j){
         mu = ll.matrix().row(j) - ll.matrix().row(j-1) - gamma(j) * (ll.matrix().row(j-1) - ll.matrix().row(j-2));  // first diff RW on locations
-        jnll += nll_dens(mu, keep.matrix().row(j));
+        jnll += nll_dens(mu);
       }
     } else if(model == 1) {
       for(j = (idx(i)+2); j < idx(i+1); ++j){
