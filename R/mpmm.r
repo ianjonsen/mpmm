@@ -18,7 +18,7 @@
 ##' @param method method for maximising the log-likelihood ("ML" or "REML")
 ##' @param optim numerical optimizer to be used (nlminb or optim)
 ##' @param control a list of control parameters (currently only for nlminb)
-##' @param verbose report progress during minimization
+##' @param verbose report progress during minimization (0 = silent (default); 1 = optimiser trace; 2 = parameter trace)
 ##' @param model "mpmm" or "mpmm_dt", "mpmm" is the default value and is for a model with regular time intervals between locations, "mpmm_dt" is for irregular time intervals.
 ##' @return a list with components
 ##' \item{\code{states}}{a dataframe of estimated states}
@@ -45,7 +45,7 @@ mpmm <- function(
                 method = "ML",
                 optim = c("optim", "nlminb"),
                 control = NULL,
-                verbose = FALSE,
+                verbose = 0,
                 model = "mpmm") {
   st <- proc.time()
 
@@ -229,12 +229,12 @@ mpmm <- function(
         DLL = "mpmm",
         hessian = FALSE,
         method = "L-BFGS-B",
-        silent = !verbose
+        silent = ifelse(verbose == 1, FALSE, TRUE)
       )
     )
 
-  obj$env$inner.control$trace <- verbose
-  obj$env$tracemgc <- verbose
+  obj$env$inner.control$trace <- ifelse(verbose == 1, TRUE, FALSE)
+  obj$env$tracemgc <- ifelse(verbose == 1, TRUE, FALSE)
 
   obj$control <- list(trace = 0,
                       reltol = 1e-12,
@@ -263,7 +263,7 @@ mpmm <- function(
   opt <- suppressWarnings(switch(optim,
                                  nlminb = try(nlminb(
                                    start = obj$par,
-                                   objective = obj$fn,
+                                   objective = ifelse(verbose == 2, myfn, obj$fn),
                                    gradient = obj$gr,
                                    control = control,
                                    lower = L,
@@ -274,7 +274,7 @@ mpmm <- function(
       optim,
       args = list(
         par = obj$par,
-        fn = myfn, #obj$fn,
+        fn = ifelse(verbose == 2, myfn, obj$fn),
         gr = obj$gr,
         method = "L-BFGS-B",
         control = control,
