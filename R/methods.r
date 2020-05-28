@@ -3,12 +3,12 @@
 logLik.mpmm <- function(m, ...) {
   if (!is.null(m$rep)) {
     val <- if (m$rep$pdHess) {
-      -1 * m$opt$objective
+      ifelse("objective" %in% names(m$opt), -1 * m$opt$objective, -1 * m$opt$value)
     } else {
       NA
     }
   } else {
-    val <- -1 * m$opt$objective
+    ifelse("objective" %in% names(m$opt), -1 * m$opt$objective, -1 * m$opt$value)
   }
 
   nobs <- nrow(m$fr)
