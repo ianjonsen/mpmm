@@ -46,13 +46,14 @@ mpmm <- function(
                 method = "ML",
                 optim = c("nlminb","optim"),
                 control = NULL,
-                optMeth = "BFGS",
+                optMeth = c("BFGS","L-BFGS-B"),
                 verbose = 2,
                 model = "mpmm") {
   st <- proc.time()
 
   call <- mf <- match.call()
   optim <- match.arg(optim)
+  optMeth <- match.arg(optMeth)
 
   # Create a tid column if there is none specified
   if(all(colnames(data) != "tid")){
