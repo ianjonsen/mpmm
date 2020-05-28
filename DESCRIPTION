@@ -1,7 +1,7 @@
 Package: mpmm
 Type: Package
 Title: (animal) Move Persistence Mixed-effects Models
-Version: 0.1.5.9850
+Version: 0.1.5.9860
 Authors@R: 
     c(
       person(given = "Ian",
