@@ -346,16 +346,6 @@ mpmm <- function(
     g.se = lg[, 2]
   )
 
-  if (optim == "nlminb") {
-    aic <- 2 * length(opt[["par"]]) + 2 * opt[["objective"]]
-    bic <-
-      log(nrow(data)) * length(opt[["par"]]) + 2 * opt[["objective"]]
-  }
-  else {
-    aic <- 2 * length(opt[["par"]]) + 2 * opt[["value"]]
-    bic <- log(nrow(data)) * length(opt[["par"]]) + 2 * opt[["value"]]
-  }
-
   rownames(fxd)[rownames(fxd) %in% "sigma"] <-
     c("sigma_lon", "sigma_lat")
   rownames(fxd)[rownames(fxd) %in% "beta"][1] <- "Intercept"
@@ -381,8 +371,6 @@ mpmm <- function(
       opt = opt,
       method = method,
       rep = rep,
-      aic = aic,
-      bic = bic,
       opt.time = opt.time
     ),
     class = "mpmm"
