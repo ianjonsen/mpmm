@@ -13,11 +13,12 @@ summary.mpmm <- function(fit, ...) {
     sum(.)
 
   mkAICtab <- function(fit) {
+    ll <- logLik(fit)
     data.frame(
-      AIC      = AIC(fit),
-      BIC      = BIC(fit),
-      logLik   = logLik(fit),
-      deviance = logLik(fit) * -2,
+      AIC      = suppressWarnings(AIC(fit)), # suppress b/c logLik will throw warning first
+      BIC      = suppressWarnings(BIC(fit)),
+      logLik   = ll,
+      deviance = ll * -2,
       df.resid = nobs - length(fit$tmb$par)
     )
   }
