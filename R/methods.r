@@ -5,6 +5,7 @@ logLik.mpmm <- function(m, ...) {
     val <- if (m$rep$pdHess) {
       ifelse("objective" %in% names(m$opt), -1 * m$opt$objective, -1 * m$opt$value)
     } else {
+      warning("Hessian was not positive-definite\n", immediate. = TRUE)
       NA
     }
   } else {

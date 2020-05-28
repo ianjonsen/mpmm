@@ -1,4 +1,4 @@
-##' @importFrom stats pnorm
+##' @importFrom stats pnorm AIC BIC
 ##' @importFrom lme4 nobars findbars
 ##' @importFrom lme4 nobars
 ##' @importFrom dplyr %>%
@@ -14,10 +14,10 @@ summary.mpmm <- function(fit, ...) {
 
   mkAICtab <- function(fit) {
     data.frame(
-      AIC      = fit$aic,
-      BIC      = fit$bic,
-      logLik   = ifelse("objective" %in% names(fit$opt),  -1 * fit$opt$objective, -1 * fit$opt$value),
-      deviance = ifelse("objective" %in% names(fit$opt), fit$opt$objective * 2, fit$opt$value * 2),
+      AIC      = AIC(fit),
+      BIC      = BIC(fit),
+      logLik   = logLik(fit),
+      deviance = logLik(fit) * -2,
       df.resid = nobs - length(fit$tmb$par)
     )
   }

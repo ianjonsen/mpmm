@@ -8,9 +8,9 @@ mpmm(
   formula = NA,
   data = NULL,
   method = "ML",
-  optim = c("nlminb", "optim"),
+  optim = c("optim", "nlminb"),
   control = NULL,
-  verbose = FALSE,
+  verbose = 0,
   model = "mpmm"
 )
 }
@@ -25,7 +25,7 @@ mpmm(
 
 \item{control}{a list of control parameters (currently only for nlminb)}
 
-\item{verbose}{report progress during minimization}
+\item{verbose}{report progress during minimization (0 = silent (default); 1 = optimiser trace; 2 = parameter trace)}
 
 \item{model}{"mpmm" or "mpmm_dt", "mpmm" is the default value and is for a model with regular time intervals between locations, "mpmm_dt" is for irregular time intervals.}
 }
