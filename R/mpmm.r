@@ -16,7 +16,9 @@
 ##' @param formula a right-hand-side regression formula (no response variable)
 ##' @param data a data frame of observations (see details)
 ##' @param method method for maximising the log-likelihood ("ML" or "REML")
+##' @param profile whether to attempt to speed up estimation (FALSE by default)
 ##' @param optim numerical optimizer to be used (nlminb or optim)
+##' @param se whether to return standard errors
 ##' @param control a list of control parameters (currently only for nlminb)
 ##' @param optMeth outer optimisation method to be used: "BFGS" (unbounded) or "L-BFGS-B" (bounded)
 ##' @param verbose report progress during minimization (0 = silent (default); 1 = optimiser trace; 2 = parameter trace)
@@ -44,7 +46,9 @@ mpmm <- function(
                 formula = NA,
                 data = NULL,
                 method = "ML",
+                profile = FALSE,
                 optim = c("nlminb","optim"),
+                se = TRUE,
                 control = NULL,
                 optMeth = c("BFGS","L-BFGS-B"),
                 verbose = 2,
@@ -217,8 +221,8 @@ mpmm <- function(
               )
 
   # integrate out the beta's from the likelihood - REML estimation; appends the beta's to the random arg.
-  profile <- NULL
-  if(method == "REML") profile <- "beta"
+  profl <- NULL
+  if(method == "REML" || profile) profl <- "beta"
 
   ## TMB - create objective function
   obj <-
@@ -228,9 +232,9 @@ mpmm <- function(
         data = data.tmb,
         parameters = param,
         random = rnd,
-        profile = profile,
+        profile = profl,
         DLL = "mpmm",
-        hessian = FALSE,
+        hessian = TRUE,
         method = optMeth,
         silent = ifelse(verbose == 1, FALSE, TRUE)
       )
@@ -317,8 +321,32 @@ mpmm <- function(
       )
   ))))
 
+  if(profile && method != "REML") {
+    ## Sparse Schur complement (Marginal of precision matrix)
+    ##' @importFrom Matrix Cholesky solve
+    GMRFmarginal <- function(Q, i, ...) {
+      ind <- seq_len(nrow(Q))
+      i1 <- (ind)[i]
+      i0 <- setdiff(ind, i1)
+      if (length(i0) == 0)
+        return(Q)
+      Q0 <- as(Q[i0, i0, drop = FALSE], "symmetricMatrix")
+      L0 <- Cholesky(Q0, ...)
+      ans <- Q[i1, i1, drop = FALSE] - Q[i1, i0, drop = FALSE] %*%
+        solve(Q0, as.matrix(Q[i0, i1, drop = FALSE]))
+      ans
+    }
+    ## use glmmTMB as a guide here...
+
+  }
+
   ## Parameters, states and the fitted values
-  rep <- sdreport(obj)
+  rep <- sdreport(obj, getJointPrecision = method == "REML")
+  if(!rep$pdHess || !se) {
+    ## don't calculate standard errors
+    if(!rep$pdHess && method != "REML") warning("\n Hession was not positive-definite, getting fixed estimates without standard errors")
+    rep <- sdreport(obj, ignore.parm.uncertainty = TRUE)
+  }
   fxd <- summary(rep, "report")
   fxd_log <- summary(rep, "fixed")
   rdm <- summary(rep, "random")

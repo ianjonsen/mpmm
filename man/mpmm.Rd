@@ -8,9 +8,11 @@ mpmm(
   formula = NA,
   data = NULL,
   method = "ML",
+  profile = FALSE,
   optim = c("nlminb", "optim"),
+  se = TRUE,
   control = NULL,
-  optMeth = "BFGS",
+  optMeth = c("BFGS", "L-BFGS-B"),
   verbose = 2,
   model = "mpmm"
 )
@@ -22,7 +24,11 @@ mpmm(
 
 \item{method}{method for maximising the log-likelihood ("ML" or "REML")}
 
+\item{profile}{whether to attempt to speed up estimation (FALSE by default)}
+
 \item{optim}{numerical optimizer to be used (nlminb or optim)}
+
+\item{se}{whether to return standard errors}
 
 \item{control}{a list of control parameters (currently only for nlminb)}
 
