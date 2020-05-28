@@ -18,6 +18,7 @@
 ##' @param method method for maximising the log-likelihood ("ML" or "REML")
 ##' @param optim numerical optimizer to be used (nlminb or optim)
 ##' @param control a list of control parameters (currently only for nlminb)
+##' @param optMeth outer optimisation method to be used: "BFGS" (unbounded) or "L-BFGS-B" (bounded)
 ##' @param verbose report progress during minimization (0 = silent (default); 1 = optimiser trace; 2 = parameter trace)
 ##' @param model "mpmm" or "mpmm_dt", "mpmm" is the default value and is for a model with regular time intervals between locations, "mpmm_dt" is for irregular time intervals.
 ##' @return a list with components
@@ -43,9 +44,10 @@ mpmm <- function(
                 formula = NA,
                 data = NULL,
                 method = "ML",
-                optim = c("optim", "nlminb"),
+                optim = c("nlminb","optim"),
                 control = NULL,
-                verbose = 0,
+                optMeth = "BFGS",
+                verbose = 2,
                 model = "mpmm") {
   st <- proc.time()
 
@@ -228,7 +230,7 @@ mpmm <- function(
         profile = profile,
         DLL = "mpmm",
         hessian = FALSE,
-        method = "L-BFGS-B",
+        method = optMeth,
         silent = ifelse(verbose == 1, FALSE, TRUE)
       )
     )
@@ -236,30 +238,61 @@ mpmm <- function(
   obj$env$inner.control$trace <- ifelse(verbose == 1, TRUE, FALSE)
   obj$env$tracemgc <- ifelse(verbose == 1, TRUE, FALSE)
 
-  obj$control <- list(trace = 0,
-                      reltol = 1e-12,
-                      maxit = 500)
-  newtonOption(obj, smartsearch = TRUE)
+  # obj$control <- list(trace = 0,
+  #                     reltol = 1e-12,
+  #                     maxit = 500)
+  # newtonOption(obj, smartsearch = TRUE)
 
   ## add par values to trace if verbose = TRUE
   myfn <- function(x) {
-    print("pars:")
-    print(x)
+    cat("\r", "pars: ", round(x, 3), "     ")
+    flush.console()
     obj$fn(x)
   }
 
-  ## Set parameter bounds - most are -Inf, Inf
-  L = c(beta = rep(-1000, ncol(X)),
-        log_sigma=c(-500,-500),
-        log_sigma_g = -500,
-        theta = rep(-Inf, sum(getVal(condReStruc, "blockNumTheta"))))
+  if (optMeth == "L-BFGS-B") {
+    ## Set parameter bounds - most are -Inf, Inf
+    L = c(
+      beta = rep(-1000, ncol(X)),
+      log_sigma = c(-500, -500),
+      log_sigma_g = -500,
+      theta = rep(-Inf, sum(getVal(
+        condReStruc, "blockNumTheta"
+      )))
+    )
 
-  U = c(beta = rep(1000, ncol(X)),
-        log_sigma=c(1000,1000),
-        log_sigma_g = 1000,
-        theta = rep(Inf, sum(getVal(condReStruc, "blockNumTheta"))))
+    U = c(
+      beta = rep(1000, ncol(X)),
+      log_sigma = c(1000, 1000),
+      log_sigma_g = 1000,
+      theta = rep(Inf, sum(getVal(
+        condReStruc, "blockNumTheta"
+      )))
+    )
+  } else {
+    ## Unbounded parameters - all are -Inf, Inf
+    L = c(
+      beta = rep(-Inf, ncol(X)),
+      log_sigma = c(-Inf, -Inf),
+      log_sigma_g = -Inf,
+      theta = rep(-Inf, sum(getVal(
+        condReStruc, "blockNumTheta"
+      )))
+    )
+
+    U = c(
+      beta = rep(Inf, ncol(X)),
+      log_sigma = c(Inf, Inf),
+      log_sigma_g = Inf,
+      theta = rep(Inf, sum(getVal(
+        condReStruc, "blockNumTheta"
+      )))
+    )
+
+  }
 
   ## Minimize objective function
+  cat("using", optim, optMeth, "\n")
   opt <- suppressWarnings(switch(optim,
                                  nlminb = try(nlminb(
                                    start = obj$par,
@@ -276,7 +309,7 @@ mpmm <- function(
         par = obj$par,
         fn = ifelse(verbose == 2, myfn, obj$fn),
         gr = obj$gr,
-        method = "L-BFGS-B",
+        method = optMeth,
         control = control,
         lower = L,
         upper = U
@@ -330,7 +363,7 @@ mpmm <- function(
   rownames(fxd)[rownames(fxd) %in% "beta"] <- ft
 
   opt.time <- proc.time() - st
-  cat(opt.time, "\n")
+  cat("\n", "timing: ", opt.time, "\n")
 
   ## FIXME:: need to simplify and organise...
   structure(

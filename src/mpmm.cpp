@@ -113,8 +113,6 @@ Type objective_function<Type>::operator() ()
   // For one-step-ahead resisuals
   DATA_ARRAY_INDICATOR(keep, ll);
 
-  DATA_INTEGER(model);              // indicates if discrete-time or continuous-time model to be used
-
   PARAMETER_VECTOR(lg);		          // move autocorrelation parameter (gamma on link scale)
   PARAMETER_VECTOR(beta);           // fixed regression coefficients (link scale)
   PARAMETER_VECTOR(b);              // random intercept & slope terms
@@ -123,8 +121,8 @@ Type objective_function<Type>::operator() ()
   PARAMETER_VECTOR(theta);          // covariance parameters
 
 
-
 // Backtransform parameters from link scale
+//vector<Type> gamma = Type(0.001) + (Type(0.999) - Type(0.001)) * (Type(1.0) / (Type(1.0) + exp(-lg))); // bounded b/w 0.001 - 0.999
 vector<Type> gamma = Type(1.0) / (Type(1.0) + exp(-lg));
 vector<Type> sigma = exp(log_sigma);
 Type sigma_g = exp(log_sigma_g);
@@ -147,34 +145,17 @@ vector<Type> eta = X * beta + Z * b;
 
   for(i = 0; i < A; ++i) {
     jnll -= dnorm(lg(idx(i)), eta(idx(i)), sigma_g, true);
-
     for(j = (idx(i)+1); j < idx(i+1); ++j) {
-      if(model == 0) {
-        jnll -= dnorm(lg(j), eta(j), sigma_g, true);
-      } else if(model == 1) {
-        jnll -= dnorm(lg(j), eta(j), di(j) * sigma_g, true);
-      }
+      jnll -= dnorm(lg(j), eta(j), di(j) * sigma_g, true);
     }
 
-    if(model == 0) {
-      // fixed var-cov
-      cov(0,0) = sigma(0) * sigma(0);
-      cov(1,1) = sigma(1) * sigma(1);
+    for(j = (idx(i)+2); j < idx(i+1); ++j){
+      mu = ll.matrix().row(j) - ll.matrix().row(j-1) - gamma(j) * (di(j)/di(j-1)) * (ll.matrix().row(j-1) - ll.matrix().row(j-2));  // first diff RW on locations
+      // var-cov depends on time interval
+      cov(0,0) = sigma(0) * sigma(0) * di(j) * di(j);
+      cov(1,1) = sigma(1) * sigma(1) * di(j) * di(j);
       MVNORM_t<Type> nll_dens(cov);
-
-      for(j = (idx(i)+2); j < idx(i+1); ++j){
-        mu = ll.matrix().row(j) - ll.matrix().row(j-1) - gamma(j) * (ll.matrix().row(j-1) - ll.matrix().row(j-2));  // first diff RW on locations
-        jnll += nll_dens(mu);
-      }
-    } else if(model == 1) {
-      for(j = (idx(i)+2); j < idx(i+1); ++j){
-        mu = ll.matrix().row(j) - ll.matrix().row(j-1) - gamma(j) * (di(j)/di(j-1)) * (ll.matrix().row(j-1) - ll.matrix().row(j-2));  // first diff RW on locations
-        // var-cov depends on time interval
-        cov(0,0) = sigma(0) * sigma(0) * di(j) * di(j);
-        cov(1,1) = sigma(1) * sigma(1) * di(j) * di(j);
-        MVNORM_t<Type> nll_dens(cov);
-        jnll += nll_dens(mu, keep.matrix().row(j));
-      }
+      jnll += nll_dens(mu, keep.matrix().row(j));
     }
   }
 

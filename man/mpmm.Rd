@@ -8,9 +8,10 @@ mpmm(
   formula = NA,
   data = NULL,
   method = "ML",
-  optim = c("optim", "nlminb"),
+  optim = c("nlminb", "optim"),
   control = NULL,
-  verbose = 0,
+  optMeth = "BFGS",
+  verbose = 2,
   model = "mpmm"
 )
 }
@@ -24,6 +25,8 @@ mpmm(
 \item{optim}{numerical optimizer to be used (nlminb or optim)}
 
 \item{control}{a list of control parameters (currently only for nlminb)}
+
+\item{optMeth}{outer optimisation method to be used: "BFGS" (unbounded) or "L-BFGS-B" (bounded)}
 
 \item{verbose}{report progress during minimization (0 = silent (default); 1 = optimiser trace; 2 = parameter trace)}
 
