@@ -322,6 +322,7 @@ mpmm <- function(
   ))))
 
   if(profile && method != "REML") {
+
     ## Sparse Schur complement (Marginal of precision matrix)
     ##' @importFrom Matrix Cholesky solve
     GMRFmarginal <- function(Q, i, ...) {
@@ -338,15 +339,84 @@ mpmm <- function(
     }
     ## use glmmTMB as a guide here...
 
+    sdr <- sdreport(obj, getJointPrecision=TRUE)
+    parnames <- names(obj$env$par)
+    Q <- sdr$jointPrecision; dimnames(Q) <- list(parnames, parnames)
+    whichNotRandom <- which( ! parnames %in% c("b","lg"))
+    Qm <- GMRFmarginal(Q, whichNotRandom)
+    h <- as.matrix(Qm) ## Hessian of *all* (non-random) parameters
+    parameters <- obj$env$parList(opt$par, obj$env$last.par.best)
+
+    ## without profile, with REML estimates as inits
+    obj <-
+      with(
+        forTMB,
+        MakeADFun(
+          data = data.tmb,
+          parameters = parameters,
+          random = rnd,
+          profile = NULL,
+          DLL = "mpmm",
+          method = optMeth,
+          silent = ifelse(verbose == 1, FALSE, TRUE)
+        )
+      )
+    ## Run up to 5 Newton iterations with fixed (off-mode) hessian
+    oldpar <- par <- obj$par; iter <- 0
+    ## FIXME: Make configurable ?
+    max.newton.steps <- 5
+    newton.tol <- 1e-10
+
+    if (sdr$pdHess) {
+      ## pdHess can be FALSE
+      ##  * Happens for boundary fits (e.g. dispersion close to 0 - see 'spline' example)
+      ##    * Option 1: Fall back to old method
+      ##    * Option 2: Skip Newton iterations
+      for (iter in seq_len(max.newton.steps)) {
+        g <- as.numeric( obj$gr(par) )
+        if (any(is.na(g)) || max(abs(g)) < newton.tol) break
+        par <- par - solve(h, g)
+      }
+
+      if (any(is.na(g))) {
+        warning("a Newton step failed in profiling")
+        par <- oldpar
+      }
+    }
+
+    opt$par <- par
+    switch(optim,
+           nlminb = {
+             opt$objective <- obj$fn(par)
+           },
+           optim = {
+             opt$value <- obj$fn(par)
+           })
+
+    opt$newton.steps <- iter
+
   }
 
+  opt$parfull <- obj$env$last.par.best[which(!names(obj$env$last.par.best) %in% "lg")]
+
+
   ## Parameters, states and the fitted values
-  rep <- sdreport(obj, getJointPrecision = method == "REML")
-  if(!rep$pdHess || !se) {
-    ## don't calculate standard errors
-    if(!rep$pdHess && method != "REML") warning("\n Hession was not positive-definite, getting fixed estimates without standard errors")
+  if(profile) {
+    rep <- sdreport(obj, hessian.fixed = h)
+  } else {
+    rep <- sdreport(obj, getJointPrecision = method == "REML")
+  }
+
+#  if(!rep$pdHess || !se) {
+#    ## don't calculate standard errors
+#    if(!rep$pdHess && method != "REML") warning("\n Hession was not positive-definite, getting fixed estimates without standard errors")
+#    rep <- sdreport(obj, ignore.parm.uncertainty = TRUE)
+# }
+  if(!rep$pdHess && method != "REML") {
+    warning("\n Hession was not positive-definite, fixed estimates do not have standard errors")
     rep <- sdreport(obj, ignore.parm.uncertainty = TRUE)
   }
+
   fxd <- summary(rep, "report")
   fxd_log <- summary(rep, "fixed")
   rdm <- summary(rep, "random")
