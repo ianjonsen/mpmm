@@ -382,6 +382,8 @@ mpmm <- function(
         warning("a Newton step failed in profiling")
         par <- oldpar
       }
+    } else {
+      warning("\n profiling not possible as Hessian was not positive-definite")
     }
 
     opt$par <- par
