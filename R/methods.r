@@ -379,7 +379,7 @@ ranef.mpmm <- function(object, condVar=TRUE, ...) {
             class = "ranef.mpmm")
 }
 
-##' @method print ranef.glmmTMB
+##' @method print ranef.mpmm
 ##' @export
 print.ranef.mpmm <- function(x, simplify=TRUE, ...) {
   print(if (simplify)
