@@ -2,80 +2,47 @@
 ##'
 ##' @title plot
 ##' @param m a fitted object of class mpmm
-##' @param label add id labels to random effects (messy)
-##' @param page 1 = plot all terms on a single page, 0 otherwise
+##' @param label add id labels to random effects
 ##'
 ##' @importFrom lme4 nobars
-##' @importFrom ggplot2 ggplot geom_line aes xlab ylab theme_bw theme ylim xlim element_text geom_text
-##' @importFrom gridExtra grid.arrange
+##' @importFrom ggplot2 ggplot geom_line aes xlab ylab theme_bw theme ylim xlim element_text facet_wrap element_blank
+##' @importFrom dplyr left_join mutate group_by %>% select arrange bind_cols
 ##' @importFrom stats plogis
-##' @importFrom reshape2 melt
+##' @importFrom tidyr pivot_longer everything
+##' @importFrom wesanderson wes_palette
 ##' @method plot mpmm
 ##' @export
-plot.mpmm <- function(m, label = FALSE, page = 1) {
+plot.mpmm <- function(m, label = FALSE) {
 
+## set up wesanderson palette for unlabeled mixed-effects
+wpal <- wes_palette("Darjeeling2", n = 5, "discrete")
+
+nval <- 50
 terms <- attr(terms(nobars(m$formula)), "term.labels")
 n <- length(terms)
-rng <- sapply(1:n, function(i) range(m$fr[, terms[i]]))
-xt <- sapply(1:n, function(i) seq(rng[1,i], rng[2,i], l = 200))
-xt.mn <- apply(xt, 2, mean)
+nid <- nrow(m$re)
+fe.rng <- sapply(1:n, function(i) range(m$fr[, terms[i]]))
+xt <- sapply(1:n, function(i) seq(fe.rng[1,i], fe.rng[2,i], l = nval))
+
+## get individual ranges for random effects
+fr.lst <- split(m$fr, m$fr$id)
+re.rng <- lapply(fr.lst, function(x) {
+  x <- x %>% select(-id)
+  c(apply(x, 2, range))
+}) %>%
+  do.call(rbind, .) %>%
+  as.data.frame() %>%
+  data.frame(id = row.names(.), ., row.names = NULL)
+names(re.rng)[-1] <- paste0(rep(terms, each=2), rep(c(".min",".max"),length(terms)))
 
 f_int <- m$par["Intercept","Estimate"]
 betas <- sapply(1:n, function(i) m$par[terms[i],"Estimate"])
 
 fxd <- sapply(1:n, function(i) {
-  if(n > 2) {
-    plogis(f_int + betas[i] * xt[, i] + betas[-i] %*% xt.mn[-i])
-  } else if(n > 1){
-    plogis(f_int + betas[i] * xt[, i] + betas[-i] * xt.mn[-i])
-    } else {
-    plogis(f_int + betas * xt)
-  }
+  if(n > 2) plogis(f_int + betas[i] * xt[, i] + sum(betas[-i] * apply(xt[, -i], 2, mean)))
+  else plogis(f_int + betas[i] * xt[, i] + sum(betas[-i] * mean(xt[, -i])))
 })
 
-if(dim(m$re)[2] == 2) {
-  ## intercept only random effect
-  re_ints <- m$par["Intercept", "Estimate"] + m$re$`(Intercept)`
-  k <- length(re_ints)
-
-  re <- lapply(1:n, function(j) {
-      if(n > 1) {
-        plogis(outer(betas[j] * xt[, j] + betas[-j] * xt.mn[-j], re_ints, FUN = "+"))
-      } else {
-        plogis(outer(betas * xt, re_ints, FUN = "+"))
-      }
-})
-  p <- lapply(1:n, function(j) {
-    pdat <- data.frame(x = xt[, j], g = re[[j]])
-    pdat <-
-      melt(
-        pdat,
-        id.vars = "x",
-        value.name = "g",
-        variable.name = "Intercept"
-      )
-    pdat <- data.frame(id = rep(as.character(m$re$id), each = 200), pdat)
-    pdat1 <- data.frame(x=xt[,j], y=fxd[,j])
-    if(label) pdat.lab <- pdat[seq(1, 2001, by = 200),]
-
-    gg <- ggplot() + theme(axis.text = element_text(size = 14),
-                     axis.title = element_text(size = 20)) +
-      geom_line(aes(pdat$x, pdat$g, group = pdat$Intercept),
-                size = 0.2,
-                colour = "dodgerblue")
-    if(label) {
-      gg <- gg +
-        geom_text(data = pdat.lab, aes(x, g, label = id), hjust = 0, size = 3)
-    }
-    gg <- gg +
-      geom_line(aes(pdat1$x, pdat1$y), size = 1, colour = "firebrick") +
-      xlab(terms[j]) +
-      ylab(expression(gamma[t])) +
-      ylim(0,1) +
-      theme_bw()
-  })
-} else {
-  ## intercept + slope(s) random effects
   re_ints <- f_int + m$re$`(Intercept)`
   k <- length(re_ints)
 
@@ -88,57 +55,79 @@ if(dim(m$re)[2] == 2) {
   bs[, rmiss] <- 0
   bs[, rpos] <- unlist(m$re[, rnms])
 
-  re_betas <- sapply(1:n, function(i) {
-    (betas[i] + bs[, i])
-  })
+   re_betas <- sapply(1:n, function(i) {
+     (betas[i] + bs[, i])
+   })
 
-  re <- lapply(1:n, function(j){
-    if(n > 2) {
-      plogis(re_ints + re_betas[,j] %o% xt[,j] + as.vector(re_betas[,-j] %*% xt.mn[-j]))
-    } else if(n > 1) {
-      plogis(re_ints + re_betas[,j] %o% xt[,j] + re_betas[,-j] * xt.mn[-j])
-    } else {
-      plogis(re_ints + re_betas[,j] %o% xt[,j])
-    }
-  })
-  p <- lapply(1:n, function(j) {
-    pdat <- data.frame(x = xt[, j], g = t(re[[j]]))
-    pdat <- melt(
-      pdat,
-      id.vars = "x",
-      value.name = "g",
-      variable.name = "re"
-    )
-    pdat <- data.frame(id = rep(as.character(m$re$id), each = 200), pdat)
-    pdat.f <- data.frame(x=xt[,j], y=fxd[,j])
-    if(label) pdat.lab <- pdat[seq(1, 2001, by = 200),]
-    gg <- ggplot() +
-      theme(axis.text = element_text(size = 14),
-                     axis.title = element_text(size = 20)) +
-    geom_line(data = pdat,
-                aes(x, g, group = re),
-                size = 0.2,
-                colour = "dodgerblue")
-    if(label) {
-      gg <- gg +
-        geom_text(data = pdat.lab, aes(x, g, label = id), hjust = 0, size = 3)
-    }
-    gg <- gg +
-      geom_line(data = pdat.f, aes(x, y), size = 1, colour = "firebrick") +
-      xlab(terms[j]) +
-      ylab(expression(gamma[t])) +
-      ylim(0,1) +
-      theme_bw()
-    gg
-})
+   xt.re <- vector(mode = "list", length = k)
+   xt.re <- lapply(1:k, function(i){
+     z <- list()
+     q <- 0
+     for(j in seq(2, 2*n, by=2)) {
+       q <- q + 1
+       z[[q]] <- seq(re.rng[i,j], re.rng[i,j+1], l=nval)
+     }
+     z <- do.call(cbind, z) %>%
+       as.data.frame(.)
+     #    names(z) <- terms
+     z %>% mutate(id = re.rng$id[i]) %>% select(id, everything())
+   })
 
-}
+   foo <- lapply(1:k, function(j) {
+     z <- list()
+     for(i in 1:n) {
+       if(n > 2) z[[i]] <- plogis(re_ints[j] + xt.re[[j]][, 1+i] * re_betas[j,i] + sum(re_betas[j, -i] * apply(xt.re[[j]][, -c(1,i+1)], 2, mean)))
+       else z[[i]] <- plogis(re_ints[j] + xt.re[[j]][, 1+i] * re_betas[j,i] + sum(re_betas[j, -i] * mean(xt.re[[j]][, -c(1,i+1)])))
+     }
+     do.call(cbind, z)
+   })
 
-if (n > 1 && page == 1) {
-  grid.arrange(grobs = p, nrow = floor(sqrt(n)))
-} else if (n == 1 || page == 0) {
-  p
-}
+   re <- lapply(1:k, function(i) {
+       as.data.frame(foo[[i]]) %>%
+       pivot_longer(cols = everything(), names_to = "predictor", values_to = "g") %>%
+       arrange(predictor) %>%
+       mutate(id = rep(re.rng$id[i])) %>%
+       select(id, everything())
+   }) %>%
+     do.call(rbind, .)
+
+   xt.re <- lapply(xt.re, function(x) {
+     x %>%
+       as.data.frame() %>%
+       pivot_longer(cols = -id, names_to = "predictor", values_to = "x")
+   }) %>%
+     do.call(rbind, .) %>%
+     arrange(id, predictor) %>%
+     select(-id, -predictor)
+
+   re.dat <- bind_cols(re, xt.re) %>%
+     mutate(predictor = factor(predictor, labels = terms))
+
+   xs <- as.data.frame(xt) %>%
+     pivot_longer(cols = everything(), names_to = "predictor", values_to = "x") %>%
+     mutate(predictor = factor(predictor, labels = terms)) %>%
+     arrange(predictor)
+
+   fe.dat <- as.data.frame(fxd) %>%
+     pivot_longer(cols = everything(), names_to = "predictor", values_to = "g") %>%
+     arrange(predictor) %>%
+     select(-predictor)
+
+   fe.dat <- data.frame(xs, fe.dat)
+
+ggplot() + theme(axis.text = element_text(size = 14),
+                          axis.title = element_text(size = 20)) +
+     geom_line(data = fe.dat,
+               aes(x, g),
+               size = 1,
+               colour = wpal[2]) +
+     geom_line(data = re.dat,
+               aes(x, g, group = id), size = 0.3, colour = wpal[3], alpha = 0.7) +
+     ylab(expression(gamma[t])) +
+     facet_wrap(~ predictor, scales = "free_x") +
+     ylim(0,1) +
+     xlab(label = element_blank()) +
+     theme_bw()
 
 }
 
