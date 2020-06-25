@@ -115,20 +115,31 @@ fxd <- sapply(1:n, function(i) {
 
    fe.dat <- data.frame(xs, fe.dat)
 
-ggplot() + theme(axis.text = element_text(size = 14),
+gg <- ggplot() + theme(axis.text = element_text(size = 14),
                           axis.title = element_text(size = 20)) +
      geom_line(data = fe.dat,
                aes(x, g),
                size = 1,
-               colour = wpal[2]) +
-     geom_line(data = re.dat,
-               aes(x, g, group = id), size = 0.3, colour = wpal[3], alpha = 0.7) +
-     ylab(expression(gamma[t])) +
-     facet_wrap(~ predictor, scales = "free_x") +
-     ylim(0,1) +
-     xlab(label = element_blank()) +
-     theme_bw()
+               colour = wpal[2])
 
+if(label) {
+  gg <- gg +
+    geom_line(data = re.dat,
+               aes(x, g, group = id, colour = id), size = 0.3, alpha = 0.7)
+  } else {
+    gg <- gg +
+      geom_line(data = re.dat,
+              aes(x, g, group = id), size = 0.3, colour = wpal[3], alpha = 0.7)
+  }
+
+    gg <- gg +
+      ylab(expression(gamma[t])) +
+      facet_wrap(~ predictor, scales = "free_x") +
+      ylim(0,1) +
+      xlab(label = element_blank()) +
+      theme_bw()
+
+    gg
 }
 
 
