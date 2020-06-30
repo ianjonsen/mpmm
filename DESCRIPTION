@@ -16,7 +16,7 @@ Authors@R:
 Author: Ian Jonsen [aut, cre],
   Marie Auger-Méthé [aut, ctb]
 Maintainer: Ian Jonsen <ian.jonsen@mq.edu.au>
-Description: Fit covariates as linear mixed-effects within a random walk with time-varying move persistence (autocorrelation) model. 
+Description: Fit covariates as linear mixed-effects to latent, time-varying move persistence (autocorrelation).  
 Depends: R (>= 3.4.3)
 Imports: 
     TMB (>= 1.7.12),
