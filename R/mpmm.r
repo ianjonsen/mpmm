@@ -170,6 +170,9 @@ mpmm <- function(
     cumsum() %>%
     c(0, .)
 
+  ## FIXME::this code appears to be messing up the idx as at least with some datasets (eg. ~/Dropbox/collab/vogel/data/d.all.kw.data24.7.csv)
+  ## FIXME::the NA's get inserted in the wrong place - ie. in middle of an individual, this results in di values jumping to either -ve #'s or v big #'s
+
   # Create dt vector if model is mpmm_dt
   # dt = t_i - t_{i-1} and include in data.tmb
   if(model == "mpmm_dt"){
