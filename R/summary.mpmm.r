@@ -32,8 +32,8 @@ summary.mpmm <- function(fit, ...) {
       data.frame(
         Group = c(grpnm, rep("", length(stdev) - 1)),
         Name = c(names(fit$re)[-1], "Residual"),
-        Variance = exp(2 * stdev),
-        StdDev = exp(stdev)
+        Variance = stdev^2,
+        StdDev = stdev
       )
 
     if (length(stdev) > 2) {
