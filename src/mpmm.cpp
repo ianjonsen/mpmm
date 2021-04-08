@@ -116,21 +116,22 @@ Type objective_function<Type>::operator() ()
   PARAMETER_VECTOR(lg);		          // move autocorrelation parameter (gamma on link scale)
   PARAMETER_VECTOR(beta);           // fixed regression coefficients (link scale)
   PARAMETER_VECTOR(b);              // random intercept & slope terms
-  PARAMETER_VECTOR(log_sigma);	    // innovation variance (log scale)
-  PARAMETER(log_sigma_g);           // logistic scale parameter of rw on lg (log scale)
+  PARAMETER_VECTOR(l_sigma);	    // innovation variance (log scale)
+  PARAMETER(l_rho);                  // innovation correlation (logit scale)
+  PARAMETER(l_sigma_g);           // logistic scale parameter of rw on lg (log scale)
   PARAMETER_VECTOR(theta);          // covariance parameters
 
 
 // Backtransform parameters from link scale
 //vector<Type> gamma = Type(0.001) + (Type(0.999) - Type(0.001)) * (Type(1.0) / (Type(1.0) + exp(-lg))); // bounded b/w 0.001 - 0.999
 vector<Type> gamma = Type(1.0) / (Type(1.0) + exp(-lg));
-vector<Type> sigma = exp(log_sigma);
-Type sigma_g = exp(log_sigma_g);
+vector<Type> sigma = exp(l_sigma);
+Type rho = Type(2.0) / (Type(1.0) + exp(-l_rho)) - Type(1.0);
+Type sigma_g = exp(l_sigma_g);
+
 
 // 2x2 covariance matrix for innovations - diag in loop
 matrix<Type> cov(2, 2);
-cov(0,1) = 0.0;
-cov(1,0) = 0.0;
 
 Type jnll = 0.0;
 vector<Type> mu(2);
@@ -152,8 +153,11 @@ vector<Type> eta = X * beta + Z * b;
     for(j = (idx(i)+2); j < idx(i+1); ++j){
       mu = ll.matrix().row(j) - ll.matrix().row(j-1) - gamma(j) * (di(j)/di(j-1)) * (ll.matrix().row(j-1) - ll.matrix().row(j-2));  // first diff RW on locations
       // var-cov depends on time interval
+      cov.setZero();
       cov(0,0) = sigma(0) * sigma(0) * di(j) * di(j);
       cov(1,1) = sigma(1) * sigma(1) * di(j) * di(j);
+      cov(1,0) = sigma(0) * sigma(1) * di(j) * rho;
+      cov(0,1) = cov(1,0);
       MVNORM_t<Type> nll_dens(cov);
       jnll += nll_dens(mu, keep.matrix().row(j));
     }
@@ -173,6 +177,7 @@ vector<Type> eta = X * beta + Z * b;
   REPORT(sd);
   ADREPORT(sigma_g);
   ADREPORT(sigma);
+  ADREPORT(rho);
   ADREPORT(beta);
 
   return jnll;

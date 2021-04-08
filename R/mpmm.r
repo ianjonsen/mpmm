@@ -46,6 +46,7 @@ mpmm <- function(
                 formula = NA,
                 data = NULL,
                 method = "ML",
+                map = NULL,
                 profile = FALSE,
                 optim = c("nlminb","optim"),
                 se = TRUE,
@@ -205,11 +206,16 @@ mpmm <- function(
                        lg          = rep(0, nobs),
                        beta        = rep(0, ncol(X)),
                        b           = rep(0, ncol(Z)),
-                       log_sigma   = c(0,0),
-                       log_sigma_g = 0,
+                       l_sigma     = c(0,0),
+                       l_rho       = 0,
+                       l_sigma_g   = 0,
                        theta       = rep(0, sum(getVal(condReStruc, "blockNumTheta")))
                      ))
   rnd <- c("lg", if(ncol(data.tmb$Z) > 0) "b")
+
+  if(!is.null(map)) {
+    names(map) <- paste0("l_", names(map))
+  }
 
   forTMB <- list(data = data.tmb,
               param = param,
@@ -234,6 +240,7 @@ mpmm <- function(
       MakeADFun(
         data = data.tmb,
         parameters = param,
+        map = map,
         random = rnd,
         profile = profl,
         DLL = "mpmm",
@@ -261,18 +268,20 @@ mpmm <- function(
   if (optMeth == "L-BFGS-B") {
     ## Set parameter bounds - most are -Inf, Inf
     L = c(
-      beta = rep(-1000, ncol(X)),
-      log_sigma = c(-500, -500),
-      log_sigma_g = -500,
+      beta = rep(-100, ncol(X)),
+      l_sigma = c(-50, -50),
+      l_rho = -10,
+      l_sigma_g = -50,
       theta = rep(-Inf, sum(getVal(
         condReStruc, "blockNumTheta"
       )))
     )
 
     U = c(
-      beta = rep(1000, ncol(X)),
-      log_sigma = c(1000, 1000),
-      log_sigma_g = 1000,
+      beta = rep(100, ncol(X)),
+      l_sigma = c(100, 100),
+      l_rho = 10,
+      l_sigma_g = 100,
       theta = rep(Inf, sum(getVal(
         condReStruc, "blockNumTheta"
       )))
@@ -281,8 +290,9 @@ mpmm <- function(
     ## Unbounded parameters - all are -Inf, Inf
     L = c(
       beta = rep(-Inf, ncol(X)),
-      log_sigma = c(-Inf, -Inf),
-      log_sigma_g = -Inf,
+      l_sigma = c(-Inf, -Inf),
+      l_rho = -Inf,
+      l_sigma_g = -Inf,
       theta = rep(-Inf, sum(getVal(
         condReStruc, "blockNumTheta"
       )))
@@ -290,8 +300,9 @@ mpmm <- function(
 
     U = c(
       beta = rep(Inf, ncol(X)),
-      log_sigma = c(Inf, Inf),
-      log_sigma_g = Inf,
+      l_sigma = c(Inf, Inf),
+      l_rho = Inf,
+      l_sigma_g = Inf,
       theta = rep(Inf, sum(getVal(
         condReStruc, "blockNumTheta"
       )))
@@ -357,6 +368,7 @@ mpmm <- function(
         MakeADFun(
           data = data.tmb,
           parameters = parameters,
+          map = map,
           random = rnd,
           profile = NULL,
           DLL = "mpmm",
