@@ -10,7 +10,7 @@ mpmm(
   map = NULL,
   se = TRUE,
   control = mpmm_control(),
-  inner.control = NULL,
+  inner.control = inner_control(),
   model = "mpmm"
 )
 }
@@ -21,7 +21,11 @@ mpmm(
 
 \item{se}{whether to return standard errors}
 
-\item{control}{a list of control parameters (see \code{\link{mpmm_control}})}
+\item{control}{a list of control parameters for the outer optimization
+(see \code{\link{mpmm_control}})}
+
+\item{inner.control}{a list of control parameters for the inner optimization
+(see \code{\link{TMB::MakeADFun}} and \code{\link{TMB::newton}})}
 
 \item{model}{"mpmm" or "mpmm_dt"; "mpmm" (default) for data with regular
 time intervals between locations, "mpmm_dt" is for irregular time intervals}

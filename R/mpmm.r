@@ -17,7 +17,10 @@
 ##' @param formula a right-hand-side regression formula (no response variable)
 ##' @param data a data frame of observations (see details)
 ##' @param se whether to return standard errors
-##' @param control a list of control parameters (see \code{\link{mpmm_control}})
+##' @param control a list of control parameters for the outer optimization
+##' (see \code{\link{mpmm_control}})
+##' @param inner.control a list of control parameters for the inner optimization
+##' (see \code{\link{TMB::MakeADFun}} and \code{\link{TMB::newton}})
 ##' @param model "mpmm" or "mpmm_dt"; "mpmm" (default) for data with regular
 ##' time intervals between locations, "mpmm_dt" is for irregular time intervals
 ##' @return a list with components
@@ -45,7 +48,7 @@ mpmm <- function(
                 map = NULL,
                 se = TRUE,
                 control = mpmm_control(),
-                inner.control = NULL,
+                inner.control = inner_control(),
                 model = "mpmm") {
   st <- proc.time()
 
@@ -255,11 +258,6 @@ mpmm <- function(
 
   obj$env$inner.control$trace <- ifelse(control$verbose == 1, TRUE, FALSE)
   obj$env$tracemgc <- ifelse(control$verbose == 1, TRUE, FALSE)
-
-  # obj$control <- list(trace = 0,
-  #                     reltol = 1e-12,
-  #                     maxit = 500)
-  # newtonOption(obj, smartsearch = TRUE)
 
   ## add par values to trace if verbose = TRUE
   myfn <- function(x) {
