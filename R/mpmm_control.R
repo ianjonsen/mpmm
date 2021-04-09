@@ -21,7 +21,7 @@
 ##' @param REML logical; whether to use REML (TRUE) or maximum likelihood
 ##' @param profile logical; option to improve speed and convergence by using
 ##' REML parameter estimates as initial values for ML optimization
-##' @param verbose report progress during minimization: 0 = silent;
+##' @param verbose integer; report progress during minimization: 0 = silent;
 ##' 1 = optimizer trace; 2 = parameter trace (default))
 ##' @param ... control parameters for the chosen optimizer
 ##' @return Returns a list with components
@@ -35,6 +35,14 @@
 ##'   \item{\code{verbose}}{level of tracing information to be reported}
 ##'   \item{\code{control}}{list of control parameters for the optimizer}
 ##' @seealso \code{\link{nlminb}}, \code{\link{optim}}.
+##' @examples
+##' fit <- mpmm(~ ice + (ice | id),
+##' data = ellie.ice.short,
+##' control = mpmm_control(
+##'     optim = "nlminb",
+##'     REML = FALSE,
+##'     eval.max = 2000)
+##'     )
 ##' @export
 
 mpmm_control <-

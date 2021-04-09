@@ -33,7 +33,7 @@ defaults are used when \code{method = "L-BFGS-B"}, otherwise ignored}
 \item{profile}{logical; option to improve speed and convergence by using
 REML parameter estimates as initial values for ML optimization}
 
-\item{verbose}{report progress during minimization: 0 = silent;
+\item{verbose}{integer; report progress during minimization: 0 = silent;
 1 = optimizer trace; 2 = parameter trace (default))}
 
 \item{...}{control parameters for the chosen optimizer}
@@ -62,6 +62,15 @@ parameters specific to the chosen optimizer are specified via the
 dots argument.  See \code{\link{nlminb}} and \code{\link{optim}}
 for available options. Adapted from S. Wotherspoon
 \url{https://github.com/SWotherspoon/RWalc/blob/master/R/RWalc.R}
+}
+\examples{
+fit <- mpmm(~ ice + (ice | id),
+data = ellie.ice.short,
+control = mpmm_control(
+    optim = "nlminb",
+    REML = FALSE,
+    eval.max = 2000)
+    )
 }
 \seealso{
 \code{\link{nlminb}}, \code{\link{optim}}.
