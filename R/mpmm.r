@@ -8,21 +8,18 @@
 ##' \item{'date'}{observation time (POSIXct,GMT),}
 ##' \item{'lon'}{observed longitude,}
 ##' \item{'lat'}{observed latitude,}
-##' \item{'tid'}{identifier for tracks if there are more than one track per individual (optional),}
+##' \item{'tid'}{identifier for tracks if there are more than one track per
+##' individual (optional),}
 ##' \item{'...'}{named covariates appended to track}
 ##' }
 ##'
 ##' @title Move Persistence Mixed-Effects Model
 ##' @param formula a right-hand-side regression formula (no response variable)
 ##' @param data a data frame of observations (see details)
-##' @param method method for maximising the log-likelihood ("ML" or "REML")
-##' @param profile whether to attempt to speed up estimation (FALSE by default)
-##' @param optim numerical optimizer to be used (nlminb or optim)
 ##' @param se whether to return standard errors
-##' @param control a list of control parameters (currently only for nlminb)
-##' @param optMeth outer optimisation method to be used: "BFGS" (unbounded) or "L-BFGS-B" (bounded)
-##' @param verbose report progress during minimization (0 = silent (default); 1 = optimiser trace; 2 = parameter trace)
-##' @param model "mpmm" or "mpmm_dt", "mpmm" is the default value and is for a model with regular time intervals between locations, "mpmm_dt" is for irregular time intervals.
+##' @param control a list of control parameters (see \code{\link{mpmm_control}})
+##' @param model "mpmm" or "mpmm_dt"; "mpmm" (default) for data with regular
+##' time intervals between locations, "mpmm_dt" is for irregular time intervals
 ##' @return a list with components
 ##' \item{\code{states}}{a dataframe of estimated states}
 ##' \item{\code{fitted}}{a dataframe of fitted locations}
@@ -45,28 +42,27 @@
 mpmm <- function(
                 formula = NA,
                 data = NULL,
-                method = "ML",
                 map = NULL,
-                profile = FALSE,
-                optim = c("nlminb","optim"),
                 se = TRUE,
-                control = NULL,
-                optMeth = c("BFGS","L-BFGS-B"),
-                verbose = 2,
+                control = mpmm_control(),
+                inner.control = NULL,
                 model = "mpmm") {
   st <- proc.time()
 
   call <- mf <- match.call()
-  optim <- match.arg(optim)
-  optMeth <- match.arg(optMeth)
 
-  # Create a tid column if there is none specified
-  if(all(colnames(data) != "tid")){
-    data$tid <- NA
-  }
+  # Create a tid column if there is none specified & model == "mpmm_dt"
+  if(model == "mpmm_dt" & all(colnames(data) != "tid"))
+    stop("input data must have a tid column to denote sub-track id")
 
   # ordering the data to make sure we have continuous tracks and ids are ordered
-  data <- data %>% arrange(id, tid, date)
+  # NOTE: we can't do this in the fn call as model.frame (mf) pulls covars from
+  #   the GlobalEnv (ie. input data _prior_ to calling mpmm())
+  # solution is to check whether input data are sorted by id, date and return
+  # error if not
+  if(!inherits(all.equal(data, data %>% arrange(id, date)), "logical"))
+    stop("input data must be sorted by id and date")
+  #  data <- data %>% arrange(id, tid, date)
 
   # check that the formula is a formula
   is.formula <- function(x)
@@ -82,10 +78,6 @@ mpmm <- function(
   # check that there is no response variable in the formula
   if (attr(terms(formula), "response") != 0)
     stop("\n'formula' can not have a response variable")
-
-  # check that either ML or REML are the specified maximisation method
-  if (!method %in% c("ML", "REML"))
-    stop("\n'method' argument must be either ML or REML")
 
   # check that formula has a random component
   if(is.null(findbars(formula)))
@@ -158,32 +150,39 @@ mpmm <- function(
   gnm <- names(condList$reTrms$flist)
 
   # Number of tracks (or individual if only one track per individual)
-  A <- nrow(count(data, id, tid))
+  switch(model,
+         mpmm = {
+           A <- nrow(count(data, id))
+           # get index of start and end of tracks
+           idx <- data$id %>%
+             table() %>%
+             as.numeric() %>%
+             cumsum() %>%
+             c(0, .)
+           # create di vector
+           data$di <- 1
+         },
+         mpmm_dt = {
+           A <- nrow(count(data, id, tid))
+           # get index of start and end of tracks
+           data$idtid <- with(data, paste(id, tid, sep=""))
+           idx <- data$idtid %>%
+             table() %>%
+             as.numeric() %>%
+             cumsum() %>%
+             c(0, .)
+           # create di vector
+           data$di <- c(NA, diff(data$date))
+           data$di[idx[1:(length(idx)-1)] + 1] <- NA
+           # Scale to median
+           data$di <- data$di/median(data$di, na.rm=TRUE)
+         })
 
-  # num random effects
-  #nre <- sapply(reTrms$cnms, length) %>% sum()
-
-  # get index of start and end of tracks
-  data <- data %>% mutate(idtid = paste(id, tid, sep=""))
-  idx <- data$idtid %>%
-    table() %>%
-    as.numeric() %>%
-    cumsum() %>%
-    c(0, .)
-
-  ## FIXME::this code appears to be messing up the idx as at least with some datasets (eg. ~/Dropbox/collab/vogel/data/d.all.kw.data24.7.csv)
-  ## FIXME::the NA's get inserted in the wrong place - ie. in middle of an individual, this results in di values jumping to either -ve #'s or v big #'s
-
-  # Create dt vector if model is mpmm_dt
-  # dt = t_i - t_{i-1} and include in data.tmb
-  if(model == "mpmm_dt"){
-    data$di <- c(NA, diff(data$date))
-    data$di[idx[1:(length(idx)-1)] + 1] <- NA
-    # Scale to median
-    data$di <- data$di/median(data$di, na.rm=TRUE)
-  }else{
-    data$di <- 1
-  }
+  ## FIXME::the mpmm_dt code appears to be messing up the idx as at least with
+  ##     some datasets (eg. ~/Dropbox/collab/vogel/data/d.all.kw.data24.7.csv)
+  ##     the NA's get inserted in the wrong place - ie. in middle of an
+  ##     individual, this results in di values jumping to
+  ##     either -ve #'s or v big #'s
 
   ## build data for TMB
   data.tmb <- list(
@@ -209,7 +208,9 @@ mpmm <- function(
                        l_sigma     = c(0,0),
                        l_rho       = 0,
                        l_sigma_g   = 0,
-                       theta       = rep(0, sum(getVal(condReStruc, "blockNumTheta")))
+                       theta       = rep(0,
+                                         sum(getVal(condReStruc,
+                                                    "blockNumTheta")))
                      ))
   rnd <- c("lg", if(ncol(data.tmb$Z) > 0) "b")
 
@@ -226,12 +227,13 @@ mpmm <- function(
               allForm = list(formula),
               fr = fr,
               call = call,
-              verbose = verbose
+              verbose = control$verbose
               )
 
-  # integrate out the beta's from the likelihood - REML estimation; appends the beta's to the random arg.
+  # integrate out the beta's from the likelihood - REML estimation;
+  #  appends the beta's to the random arg.
   profl <- NULL
-  if(method == "REML" || profile) profl <- "beta"
+  if(control$REML || control$profile) profl <- "beta"
 
   ## TMB - create objective function
   obj <-
@@ -245,13 +247,14 @@ mpmm <- function(
         profile = profl,
         DLL = "mpmm",
         hessian = TRUE,
-        method = optMeth,
-        silent = ifelse(verbose == 1, FALSE, TRUE)
+        method = control$method,
+        inner.control = inner.control,
+        silent = ifelse(control$verbose == 1, FALSE, TRUE)
       )
     )
 
-  obj$env$inner.control$trace <- ifelse(verbose == 1, TRUE, FALSE)
-  obj$env$tracemgc <- ifelse(verbose == 1, TRUE, FALSE)
+  obj$env$inner.control$trace <- ifelse(control$verbose == 1, TRUE, FALSE)
+  obj$env$tracemgc <- ifelse(control$verbose == 1, TRUE, FALSE)
 
   # obj$control <- list(trace = 0,
   #                     reltol = 1e-12,
@@ -265,9 +268,10 @@ mpmm <- function(
     obj$fn(x)
   }
 
-  if (optMeth == "L-BFGS-B") {
+  if (control$method == "L-BFGS-B" & any(is.null(control$lower),
+                                         is.null(control$upper))) {
     ## Set parameter bounds - most are -Inf, Inf
-    L = c(
+    L <- c(
       beta = rep(-100, ncol(X)),
       l_sigma = c(-50, -50),
       l_rho = -10,
@@ -277,7 +281,7 @@ mpmm <- function(
       )))
     )
 
-    U = c(
+    U <- c(
       beta = rep(100, ncol(X)),
       l_sigma = c(100, 100),
       l_rho = 10,
@@ -286,9 +290,9 @@ mpmm <- function(
         condReStruc, "blockNumTheta"
       )))
     )
-  } else {
+  } else if (control$method == "BFGS") {
     ## Unbounded parameters - all are -Inf, Inf
-    L = c(
+    L <- c(
       beta = rep(-Inf, ncol(X)),
       l_sigma = c(-Inf, -Inf),
       l_rho = -Inf,
@@ -298,7 +302,7 @@ mpmm <- function(
       )))
     )
 
-    U = c(
+    U <- c(
       beta = rep(Inf, ncol(X)),
       l_sigma = c(Inf, Inf),
       l_rho = Inf,
@@ -308,16 +312,20 @@ mpmm <- function(
       )))
     )
 
+  } else if(control$method == "L-BFGS-B" & all(!is.null(control$lower),
+                                               !is.null(control$upper))) {
+    L <- control$lower
+    U <- control$upper
   }
 
   ## Minimize objective function
-  cat("using", optim, optMeth, "\n")
-  opt <- suppressWarnings(switch(optim,
+  cat("using", control$optim, control$method, "\n")
+  opt <- suppressWarnings(switch(control$optim,
                                  nlminb = try(nlminb(
                                    start = obj$par,
-                                   objective = ifelse(verbose == 2, myfn, obj$fn),
+                                   objective = ifelse(control$verbose == 2, myfn, obj$fn),
                                    gradient = obj$gr,
-                                   control = control,
+                                   control = control$control,
                                    lower = L,
                                    upper = U
     ))
@@ -326,16 +334,16 @@ mpmm <- function(
       optim,
       args = list(
         par = obj$par,
-        fn = ifelse(verbose == 2, myfn, obj$fn),
+        fn = ifelse(control$verbose == 2, myfn, obj$fn),
         gr = obj$gr,
-        method = optMeth,
-        control = control,
+        method = control$method,
+        control = control$control,
         lower = L,
         upper = U
       )
   ))))
 
-  if(profile && method != "REML") {
+  if(control$profile && !control$REML) {
 
     ## Sparse Schur complement (Marginal of precision matrix)
     ##' @importFrom Matrix Cholesky solve
@@ -372,8 +380,8 @@ mpmm <- function(
           random = rnd,
           profile = NULL,
           DLL = "mpmm",
-          method = optMeth,
-          silent = ifelse(verbose == 1, FALSE, TRUE)
+          method = control$method,
+          silent = ifelse(control$verbose == 1, FALSE, TRUE)
         )
       )
     ## Run up to 5 Newton iterations with fixed (off-mode) hessian
@@ -402,7 +410,7 @@ mpmm <- function(
     }
 
     opt$par <- par
-    switch(optim,
+    switch(control$optim,
            nlminb = {
              opt$objective <- obj$fn(par)
            },
@@ -418,10 +426,10 @@ mpmm <- function(
 
 
   ## Parameters, states and the fitted values
-  if(profile) {
+  if(control$profile) {
     rep <- sdreport(obj, hessian.fixed = h)
   } else {
-    rep <- sdreport(obj, getJointPrecision = method == "REML")
+    rep <- sdreport(obj, getJointPrecision = control$REML)
   }
 
 #  if(!rep$pdHess || !se) {
@@ -429,7 +437,7 @@ mpmm <- function(
 #    if(!rep$pdHess && method != "REML") warning("\n Hession was not positive-definite, getting fixed estimates without standard errors")
 #    rep <- sdreport(obj, ignore.parm.uncertainty = TRUE)
 # }
-  if(!rep$pdHess && method != "REML") {
+  if(!rep$pdHess && !control$REML) {
     warning("\n Hession was not positive-definite, fixed estimates do not have standard errors")
     rep <- sdreport(obj, ignore.parm.uncertainty = TRUE)
   }
@@ -484,7 +492,7 @@ mpmm <- function(
       re = ret,
       tmb = obj,
       opt = opt,
-      method = method,
+      REML = control$REML,
       rep = rep,
       opt.time = opt.time
     ),

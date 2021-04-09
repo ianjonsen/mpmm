@@ -4,14 +4,12 @@
 \alias{plot.mpmm}
 \title{plot}
 \usage{
-\method{plot}{mpmm}(m, label = FALSE, page = 1)
+\method{plot}{mpmm}(m, label = FALSE)
 }
 \arguments{
 \item{m}{a fitted object of class mpmm}
 
-\item{label}{add id labels to random effects (messy)}
-
-\item{page}{1 = plot all terms on a single page, 0 otherwise}
+\item{label}{add id labels to random effects}
 }
 \description{
 Visualise fixed and random relationships

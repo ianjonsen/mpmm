@@ -1,7 +1,8 @@
 Package: mpmm
 Type: Package
 Title: (animal) Move Persistence Mixed-effects Models
-Version: 0.1.6-2
+Version: 0.1.8.9027
+Date: 09/04/2021
 Authors@R: 
     c(
       person(given = "Ian",
@@ -35,4 +36,4 @@ LazyData: true
 LinkingTo: 
     RcppEigen,
     TMB
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1

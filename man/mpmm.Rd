@@ -7,13 +7,10 @@
 mpmm(
   formula = NA,
   data = NULL,
-  method = "ML",
-  profile = FALSE,
-  optim = c("nlminb", "optim"),
+  map = NULL,
   se = TRUE,
-  control = NULL,
-  optMeth = c("BFGS", "L-BFGS-B"),
-  verbose = 2,
+  control = mpmm_control(),
+  inner.control = NULL,
   model = "mpmm"
 )
 }
@@ -22,21 +19,12 @@ mpmm(
 
 \item{data}{a data frame of observations (see details)}
 
-\item{method}{method for maximising the log-likelihood ("ML" or "REML")}
-
-\item{profile}{whether to attempt to speed up estimation (FALSE by default)}
-
-\item{optim}{numerical optimizer to be used (nlminb or optim)}
-
 \item{se}{whether to return standard errors}
 
-\item{control}{a list of control parameters (currently only for nlminb)}
+\item{control}{a list of control parameters (see \code{\link{mpmm_control}})}
 
-\item{optMeth}{outer optimisation method to be used: "BFGS" (unbounded) or "L-BFGS-B" (bounded)}
-
-\item{verbose}{report progress during minimization (0 = silent (default); 1 = optimiser trace; 2 = parameter trace)}
-
-\item{model}{"mpmm" or "mpmm_dt", "mpmm" is the default value and is for a model with regular time intervals between locations, "mpmm_dt" is for irregular time intervals.}
+\item{model}{"mpmm" or "mpmm_dt"; "mpmm" (default) for data with regular
+time intervals between locations, "mpmm_dt" is for irregular time intervals}
 }
 \value{
 a list with components
@@ -59,7 +47,8 @@ observed location and columns
 \item{'date'}{observation time (POSIXct,GMT),}
 \item{'lon'}{observed longitude,}
 \item{'lat'}{observed latitude,}
-\item{'tid'}{identifier for tracks if there are more than one track per individual (optional),}
+\item{'tid'}{identifier for tracks if there are more than one track per
+individual (optional),}
 \item{'...'}{named covariates appended to track}
 }
 }
