@@ -31,8 +31,8 @@
 ##' \item{\code{tmb}}{the tmb object}
 ##' \item{\code{opt}}{the object returned by the optimizer}
 ##' @examples
-##' data(ellie.ice)
-##' fit <- mpmm(~ ice + (1 | id), data = ellie.ice)
+##' data(ellie.ice.short)
+##' fit <- mpmm(~ ice + (1 | id), data = ellie.ice.short)
 ##' summary(fit)
 ##'
 ##' @useDynLib mpmm
@@ -48,24 +48,41 @@ mpmm <- function(
                 map = NULL,
                 se = TRUE,
                 control = mpmm_control(),
-                inner.control = inner_control(),
-                model = "mpmm") {
-  st <- proc.time()
+                inner.control = inner_control()
+                ) {
 
   call <- mf <- match.call()
 
-  # Create a tid column if there is none specified & model == "mpmm_dt"
-  if(model == "mpmm_dt" & all(colnames(data) != "tid"))
-    stop("input data must have a tid column to denote sub-track id")
+  # check for presence of sub-tracks
+  subtr <- any(colnames(data) %in% "tid")
+
+  # check whether records are regular or irregular in time
+  if (subtr) {
+    if (length(unique(diff(data$date))) > length(unique(data$tid))) {
+      model <- "cont"
+    } else {
+      model <- "disc"
+    }
+  } else {
+    if (length(unique(diff(data$date))) > length(unique(data$id))) {
+      model <- "cont"
+    } else {
+      model <- "disc"
+    }
+  }
 
   # ordering the data to make sure we have continuous tracks and ids are ordered
   # NOTE: we can't do this in the fn call as model.frame (mf) pulls covars from
   #   the GlobalEnv (ie. input data _prior_ to calling mpmm())
   # solution is to check whether input data are sorted by id, date and return
   # error if not
-  if(!inherits(all.equal(data, data %>% arrange(id, date)), "logical"))
-    stop("input data must be sorted by id and date")
-  #  data <- data %>% arrange(id, tid, date)
+  if(subtr) {
+    if(!inherits(all.equal(data, data %>% arrange(id, tid, date)), "logical"))
+      stop("input data must be sorted by id, tid, and date")
+  } else if (!subtr) {
+    if(!inherits(all.equal(data, data %>% arrange(id, date)), "logical"))
+      stop("input data must be sorted by id, and date")
+  }
 
   # check that the formula is a formula
   is.formula <- function(x)
@@ -154,34 +171,54 @@ mpmm <- function(
 
   # Number of tracks (or individual if only one track per individual)
   switch(model,
-         mpmm = {
-           A <- nrow(count(data, id))
-           # get index of start and end of tracks
-           idx <- data$id %>%
-             table() %>%
-             as.numeric() %>%
-             cumsum() %>%
-             c(0, .)
+         disc = {
+           if(subtr) {
+             A <- nrow(count(data, id, tid))
+             # get index of start and end of tracks
+             idtid <- with(data, paste(id, tid, sep=""))
+             idx <- idtid %>%
+               table() %>%
+               as.numeric() %>%
+               cumsum() %>%
+               c(0, .)
+           } else {
+             A <- nrow(count(data, id))
+             idx <- data$id %>%
+               table() %>%
+               as.numeric() %>%
+               cumsum() %>%
+               c(0, .)
+           }
            # create di vector
-           data$di <- 1
+           di <- rep(1, nrow(data))
          },
-         mpmm_dt = {
-           A <- nrow(count(data, id, tid))
-           # get index of start and end of tracks
-           data$idtid <- with(data, paste(id, tid, sep=""))
-           idx <- data$idtid %>%
-             table() %>%
-             as.numeric() %>%
-             cumsum() %>%
-             c(0, .)
+         cont = {
+           if(subtr) {
+             A <- nrow(count(data, id, tid))
+             # get index of start and end of tracks
+             idtid <- with(data, paste(id, tid, sep=""))
+             idx <- idtid %>%
+               table() %>%
+               as.numeric() %>%
+               cumsum() %>%
+               c(0, .)
+           } else {
+             A <- nrow(count(data, id))
+             idx <- data$id %>%
+               table() %>%
+               as.numeric() %>%
+               cumsum() %>%
+               c(0, .)
+           }
            # create di vector
-           data$di <- c(NA, diff(data$date))
-           data$di[idx[1:(length(idx)-1)] + 1] <- NA
+           di <- c(NA, diff(data$date))
+           di[idx[1:(length(idx)-1)] + 1] <- NA
            # Scale to median
-           data$di <- data$di/median(data$di, na.rm=TRUE)
+           di <- di / median(di, na.rm=TRUE)
          })
 
-  ## FIXME::the mpmm_dt code appears to be messing up the idx as at least with
+  ## THIS MIGHT BE FIXED NOW - CHECK...
+  ## FIXME::the "cont" code appears to be messing up the idx as at least with
   ##     some datasets (eg. ~/Dropbox/collab/vogel/data/d.all.kw.data24.7.csv)
   ##     the NA's get inserted in the wrong place - ie. in middle of an
   ##     individual, this results in di values jumping to
@@ -193,10 +230,11 @@ mpmm <- function(
     Z     = condList$Z,
     ll    = cbind(data$lon, data$lat),
     idx   = idx,
-    di    = data$di,
-    model = ifelse(model == "mpmm", 0, 1),
+    di    = di,
     A     = A,
-    terms = condReStruc
+    terms = condReStruc,
+    model_name = "mp" #required for src, placeholder for adding more models
+
   )
 
   getVal <- function(obj, component)
@@ -474,8 +512,8 @@ mpmm <- function(
   ft <- attr(termf, "term.labels")
   rownames(fxd)[rownames(fxd) %in% "beta"] <- ft
 
-  opt.time <- proc.time() - st
-  cat("\n", "timing: ", opt.time, "\n")
+  cat("\nconvergence: ", ifelse(opt$convergence == 0, "yes", "no"), "\n")
+  if(opt$convergence !=0) cat("\nmessage:", opt$message, "\n")
 
   ## FIXME:: need to simplify and organise...
   structure(
@@ -492,7 +530,7 @@ mpmm <- function(
       opt = opt,
       REML = control$REML,
       rep = rep,
-      opt.time = opt.time
+      model = model
     ),
     class = "mpmm"
   )

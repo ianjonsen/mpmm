@@ -35,7 +35,7 @@
 ##'   \item{\code{verbose}}{level of tracing information to be reported}
 ##'   \item{\code{control}}{list of control parameters for the optimizer}
 ##' @seealso \code{\link{nlminb}}, \code{\link{optim}}.
-##' @example
+##' @examples
 ##' fit <- mpmm(~ ice + (ice | id),
 ##' data = ellie.ice.short,
 ##' control = mpmm_control(

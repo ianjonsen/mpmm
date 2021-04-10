@@ -63,6 +63,15 @@ dots argument.  See \code{\link{nlminb}} and \code{\link{optim}}
 for available options. Adapted from S. Wotherspoon
 \url{https://github.com/SWotherspoon/RWalc/blob/master/R/RWalc.R}
 }
+\examples{
+fit <- mpmm(~ ice + (ice | id),
+data = ellie.ice.short,
+control = mpmm_control(
+    optim = "nlminb",
+    REML = FALSE,
+    eval.max = 2000)
+    )
+}
 \seealso{
 \code{\link{nlminb}}, \code{\link{optim}}.
 }

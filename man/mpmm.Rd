@@ -10,8 +10,7 @@ mpmm(
   map = NULL,
   se = TRUE,
   control = mpmm_control(),
-  inner.control = inner_control(),
-  model = "mpmm"
+  inner.control = inner_control()
 )
 }
 \arguments{
@@ -57,8 +56,8 @@ individual (optional),}
 }
 }
 \examples{
-data(ellie.ice)
-fit <- mpmm(~ ice + (1 | id), data = ellie.ice)
+data(ellie.ice.short)
+fit <- mpmm(~ ice + (1 | id), data = ellie.ice.short)
 summary(fit)
 
 }
