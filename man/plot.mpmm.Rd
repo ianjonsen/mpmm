@@ -4,13 +4,16 @@
 \alias{plot.mpmm}
 \title{plot}
 \usage{
-\method{plot}{mpmm}(m, label = FALSE)
+\method{plot}{mpmm}(x, label = FALSE, ...)
 }
 \arguments{
-\item{m}{a fitted object of class mpmm}
+\item{x}{an mpmm fit object}
 
 \item{label}{add id labels to random effects}
+
+\item{...}{additional arguments to be ignored}
 }
 \description{
-Visualise fixed and random relationships
+Visualise fixed and random covariate relationships from
+an mpmm fit object
 }

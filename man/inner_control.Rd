@@ -7,7 +7,7 @@
 inner_control(...)
 }
 \arguments{
-\item{...}{control parameters for the inner (newton) optimizer}
+\item{...}{control parameters for the inner optimizer}
 }
 \value{
 Returns a list with components:
@@ -15,20 +15,18 @@ Returns a list with components:
 }
 \description{
 \code{inner_control} allows specification of control parameters for the
-inner (newton) optimization used by \code{mpmm}
+inner optimization used by \code{mpmm}
 }
 \details{
-See \code{\link{TMB::MakeADFun}} and \code{\link{TMB::newton}}
+See \code{\link{MakeADFun}} and \code{\link{newton}}
 for details and available options. Adapted from S. Wotherspoon
 \url{https://github.com/SWotherspoon/RWalc/blob/master/R/RWalc.R}
 }
 \examples{
 fit <- mpmm(~ ice + (ice | id),
 data = ellie.ice.short,
-inner_control = list(
-    maxit = 1500,
-    tol = 1e-04))
+inner.control = inner_control(tol = 1e-03))
 }
 \seealso{
-\code{\link{TMB::MakeADFun}}, \code{\link{TMB::newton}}
+\code{\link{MakeADFun}}, \code{\link{newton}}
 }

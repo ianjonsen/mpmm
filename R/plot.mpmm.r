@@ -1,31 +1,37 @@
-##' Visualise fixed and random relationships
-##'
 ##' @title plot
-##' @param m a fitted object of class mpmm
+##' @description Visualise fixed and random covariate relationships from
+##' an mpmm fit object
+##' @param x an mpmm fit object
 ##' @param label add id labels to random effects
+##' @param ... additional arguments to be ignored
 ##'
 ##' @importFrom lme4 nobars
-##' @importFrom ggplot2 ggplot geom_line aes xlab ylab theme_bw theme ylim xlim element_text facet_wrap element_blank
+##' @importFrom ggplot2 ggplot geom_line aes xlab ylab theme_bw theme ylim xlim
+##' @importFrom ggplot2 element_text facet_wrap element_blank
 ##' @importFrom dplyr left_join mutate group_by %>% select arrange bind_cols
 ##' @importFrom stats plogis
 ##' @importFrom tidyr pivot_longer everything
 ##' @importFrom wesanderson wes_palette
 ##' @method plot mpmm
 ##' @export
-plot.mpmm <- function(m, label = FALSE) {
+plot.mpmm <- function(x, label = FALSE, ...) {
+
+  if (length(list(...)) > 0) {
+    warning("additional arguments ignored")
+  }
 
 ## set up wesanderson palette for unlabeled mixed-effects
 wpal <- wes_palette("Darjeeling2", n = 5, "discrete")
 
 nval <- 50
-terms <- attr(terms(nobars(m$formula)), "term.labels")
+terms <- attr(terms(nobars(x$formula)), "term.labels")
 n <- length(terms)
-nid <- nrow(m$re)
-fe.rng <- sapply(1:n, function(i) range(m$fr[, terms[i]]))
+nid <- nrow(x$re)
+fe.rng <- sapply(1:n, function(i) range(x$fr[, terms[i]]))
 xt <- sapply(1:n, function(i) seq(fe.rng[1,i], fe.rng[2,i], l = nval))
 
 ## get individual ranges for random effects
-fr.lst <- split(m$fr, m$fr$id)
+fr.lst <- split(x$fr, x$fr$id)
 re.rng <- lapply(fr.lst, function(x) {
   x <- x %>% select(-id)
   c(apply(x, 2, range))
@@ -35,25 +41,25 @@ re.rng <- lapply(fr.lst, function(x) {
   data.frame(id = row.names(.), ., row.names = NULL)
 names(re.rng)[-1] <- paste0(rep(terms, each=2), rep(c(".min",".max"),length(terms)))
 
-f_int <- m$par["Intercept","Estimate"]
-betas <- sapply(1:n, function(i) m$par[terms[i],"Estimate"])
+f_int <- x$par["Intercept","Estimate"]
+betas <- sapply(1:n, function(i) x$par[terms[i],"Estimate"])
 
 fxd <- sapply(1:n, function(i) {
   if(n > 2) plogis(f_int + betas[i] * xt[, i] + sum(betas[-i] * apply(xt[, -i], 2, mean)))
   else plogis(f_int + betas[i] * xt[, i] + sum(betas[-i] * mean(xt[, -i])))
 })
 
-  re_ints <- f_int + m$re$`(Intercept)`
+  re_ints <- f_int + x$re$`(Intercept)`
   k <- length(re_ints)
 
-  rnms <- names(m$re)[!names(m$re) %in% c("id","(Intercept)")]
+  rnms <- names(x$re)[!names(x$re) %in% c("id","(Intercept)")]
   # check for fixed terms not in random terms
   rmiss <- which(!terms %in% rnms)
   rpos <- which(terms %in% rnms)
 
   bs <- matrix(0, ncol = n, nrow = k)
   bs[, rmiss] <- 0
-  bs[, rpos] <- unlist(m$re[, rnms])
+  bs[, rpos] <- unlist(x$re[, rnms])
 
    re_betas <- sapply(1:n, function(i) {
      (betas[i] + bs[, i])

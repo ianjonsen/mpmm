@@ -5,27 +5,42 @@
 \title{residuals}
 \usage{
 \method{residuals}{mpmm}(
-  m,
+  object,
   method = "oneStepGaussianOffMode",
   trace = FALSE,
   parallel = TRUE,
-  ncores = detectCores() - 1
+  ncores = detectCores() - 1,
+  ...
 )
 }
 \arguments{
-\item{m}{a fitted object of class mpmm}
+\item{object}{an mpmm fit object}
 
-\item{method}{Character naming the method to calculate one-step-ahead residuals}
+\item{method}{character naming the method to calculate one-step-ahead
+residuals}
+
+\item{trace}{logical; print progress to console}
+
+\item{parallel}{logical; compute in parallel}
+
+\item{ncores}{integer; number of cores to use (default = total cores
+detected - 1)}
+
+\item{...}{additional arguments to be ignored}
 }
 \value{
 a list with components
-\item{\code{res}}{a tibble with one-step-ahead residuals for longitude and latitude}
+\item{\code{res}}{a tibble with one-step-ahead residuals for longitude and
+ latitude}
 }
 \description{
 Extract one-step-ahead residuals
 }
 \details{
-Wrapper function for TMB::oneStepPredict function that calculates one-step-ahead residuals, which are residuals that account for temporal correlation in latent states.
+Wrapper function for modified \code{\link{oneStepPredict}}
+that calculates one-step-ahead residuals, which are residuals that account
+for temporal correlation in latent states. The modification allows easier
+parallel computation.
 }
 \examples{
 \dontrun{
@@ -36,5 +51,7 @@ residuals(fit)
 }
 }
 \references{
-Thygesen, U. H., C. M. Albertsen, C. W. Berg, K. Kristensen, and A. Neilsen. 2017. Validation of ecological state space models using the Laplace approximation. Environmental and Ecological Statistics 24:317–339.
+Thygesen, U. H., C. M. Albertsen, C. W. Berg, K. Kristensen, and
+A. Neilsen. 2017. Validation of ecological state space models using the
+Laplace approximation. Environmental and Ecological Statistics 24:317–339.
 }

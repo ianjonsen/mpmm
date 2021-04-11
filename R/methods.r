@@ -1,34 +1,44 @@
+##' @title Extract log-likelihood
+##' @description extract log-likelihood from an mpmm fit object
+##' @param object an mpmm model fit object
+##' @param ... additional arguments to be ignored
 ##' @importFrom stats logLik
+##' @method logLik mpmm
 ##' @export
-logLik.mpmm <- function(m, ...) {
-  if (!is.null(m$rep)) {
-    val <- if (m$rep$pdHess) {
-      ifelse("objective" %in% names(m$opt), -1 * m$opt$objective, -1 * m$opt$value)
+logLik.mpmm <- function(object, ...) {
+  if (length(list(...)) > 0) {
+    warning("additional arguments ignored")
+  }
+  if (!is.null(object$rep)) {
+    val <- if (object$rep$pdHess) {
+      ifelse("objective" %in% names(object$opt), -1 * object$opt$objective, -1 * object$opt$value)
     } else {
       warning("Hessian was not positive-definite\n", immediate. = TRUE)
       NA
     }
   } else {
-    ifelse("objective" %in% names(m$opt), -1 * m$opt$objective, -1 * m$opt$value)
+    ifelse("objective" %in% names(object$opt), -1 * object$opt$objective, -1 * object$opt$value)
   }
 
-  nobs <- nrow(m$fr)
+  nobs <- nrow(object$fr)
   structure(
     val,
     nobs = nobs,
     nall = nobs,
-    df = length(m$tmb$par),
+    df = length(object$tmb$par),
     class = "logLik"
   )
 }
 
-##' @title perform likelihood ratio tests on 2 or more mpmm model objects
-##' @param m an model object with class mpmm
-##' @param ... additional mpmm model objects
+##' @title anova tables
+##' @description perform likelihood ratio tests on 2 or more mpmm fit objects
+##' @param object an mpmm fit object
+##' @param ... additional mpmm fit objects
 ##' @importFrom methods is
 ##' @importFrom stats var getCall pchisq anova
+##' @method anova mpmm
 ##' @export
-anova.mpmm <- function (m, ...)
+anova.mpmm <- function (object, ...)
 {
   ## borrows heavily from glmmTMB...
   mCall <- match.call(expand.dots = TRUE)
@@ -40,9 +50,9 @@ anova.mpmm <- function (m, ...)
   if (!any(modp))
     stop("anova() can only be used to compare multiple mpmm models")
   else {
-    mods <- c(list(m), dots[modp])
-    nobs <- function(m)
-      nrow(m$fr)
+    mods <- c(list(object), dots[modp])
+    nobs <- function(object)
+      nrow(object$fr)
     nobs.vec <- vapply(mods, nobs, 1L)
 
     if (var(nobs.vec) > 0)

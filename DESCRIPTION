@@ -1,7 +1,7 @@
 Package: mpmm
 Type: Package
 Title: (animal) Move Persistence Mixed-effects Models
-Version: 0.1.8.9028
+Version: 0.2.0.9067
 Date: 09/04/2021
 Authors@R: 
     c(
@@ -17,7 +17,7 @@ Authors@R:
 Author: Ian Jonsen [aut, cre],
   Marie Auger-Méthé [aut, ctb]
 Description: Fit covariates as linear mixed-effects to latent, time-varying move persistence (autocorrelation). 
-Depends: R (>= 3.4.3)
+Depends: R (>= 3.5.0)
 Imports: 
     TMB (>= 1.7.19),
     lme4 (>= 1.1-15),

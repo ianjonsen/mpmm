@@ -2,15 +2,15 @@
 % Please edit documentation in R/methods.r
 \name{anova.mpmm}
 \alias{anova.mpmm}
-\title{perform likelihood ratio tests on 2 or more mpmm model objects}
+\title{anova tables}
 \usage{
-\method{anova}{mpmm}(m, ...)
+\method{anova}{mpmm}(object, ...)
 }
 \arguments{
-\item{m}{an model object with class mpmm}
+\item{object}{an mpmm fit object}
 
-\item{...}{additional mpmm model objects}
+\item{...}{additional mpmm fit objects}
 }
 \description{
-perform likelihood ratio tests on 2 or more mpmm model objects
+perform likelihood ratio tests on 2 or more mpmm fit objects
 }

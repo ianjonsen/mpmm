@@ -8,7 +8,6 @@ mpmm(
   formula = NA,
   data = NULL,
   map = NULL,
-  se = TRUE,
   control = mpmm_control(),
   inner.control = inner_control()
 )
@@ -18,16 +17,14 @@ mpmm(
 
 \item{data}{a data frame of observations (see details)}
 
-\item{se}{whether to return standard errors}
+\item{map}{a named list of parameters as factors that are to be fixed during
+estimation, e.g., list(rho = factor(NA))}
 
 \item{control}{a list of control parameters for the outer optimization
 (see \code{\link{mpmm_control}})}
 
 \item{inner.control}{a list of control parameters for the inner optimization
-(see \code{\link{TMB::MakeADFun}} and \code{\link{TMB::newton}})}
-
-\item{model}{"mpmm" or "mpmm_dt"; "mpmm" (default) for data with regular
-time intervals between locations, "mpmm_dt" is for irregular time intervals}
+(see \code{\link{MakeADFun}} and \code{\link{newton}})}
 }
 \value{
 a list with components
@@ -39,8 +36,8 @@ a list with components
 \item{\code{opt}}{the object returned by the optimizer}
 }
 \description{
-Fit a move persistence random walk via TMB to a pre-filtered/regularised animal
-  track and estimate gamma as a linear function of covariates
+Fit a move persistence random walk via TMB to a pre-filtered/regularized
+ animal track and estimate gamma as a linear function of covariates
 }
 \details{
 The input track is given as a dataframe where each row is an

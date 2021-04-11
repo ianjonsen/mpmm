@@ -1,5 +1,5 @@
-##' Fit a move persistence random walk via TMB to a pre-filtered/regularised animal
-##'   track and estimate gamma as a linear function of covariates
+##' Fit a move persistence random walk via TMB to a pre-filtered/regularized
+##'  animal track and estimate gamma as a linear function of covariates
 ##'
 ##' The input track is given as a dataframe where each row is an
 ##' observed location and columns
@@ -16,13 +16,12 @@
 ##' @title Move Persistence Mixed-Effects Model
 ##' @param formula a right-hand-side regression formula (no response variable)
 ##' @param data a data frame of observations (see details)
-##' @param se whether to return standard errors
+##' @param map a named list of parameters as factors that are to be fixed during
+##' estimation, e.g., list(rho = factor(NA))
 ##' @param control a list of control parameters for the outer optimization
 ##' (see \code{\link{mpmm_control}})
 ##' @param inner.control a list of control parameters for the inner optimization
-##' (see \code{\link{TMB::MakeADFun}} and \code{\link{TMB::newton}})
-##' @param model "mpmm" or "mpmm_dt"; "mpmm" (default) for data with regular
-##' time intervals between locations, "mpmm_dt" is for irregular time intervals
+##' (see \code{\link{MakeADFun}} and \code{\link{newton}})
 ##' @return a list with components
 ##' \item{\code{states}}{a dataframe of estimated states}
 ##' \item{\code{fitted}}{a dataframe of fitted locations}
@@ -41,12 +40,14 @@
 ##' @importFrom Matrix t
 ##' @importFrom dplyr %>% arrange count mutate as_tibble tibble
 ##' @importFrom TMB MakeADFun sdreport newtonOption
+##' @importFrom utils flush.console
+##' @importFrom methods as
+##' @importFrom stats nlminb optim optimHess qnorm runif splinefun median
 ##' @export
 mpmm <- function(
                 formula = NA,
                 data = NULL,
                 map = NULL,
-                se = TRUE,
                 control = mpmm_control(),
                 inner.control = inner_control()
                 ) {
@@ -355,11 +356,13 @@ mpmm <- function(
   }
 
   ## Minimize objective function
-  cat("using", control$optim, control$method, "\n")
+  cat("using", control$optim, control$method, "with",
+      ifelse(control$REML, "REML=TRUE", "REML=FALSE"), "\n")
   opt <- suppressWarnings(switch(control$optim,
                                  nlminb = try(nlminb(
                                    start = obj$par,
-                                   objective = ifelse(control$verbose == 2, myfn, obj$fn),
+                                   objective =
+                                     ifelse(control$verbose == 2, myfn, obj$fn),
                                    gradient = obj$gr,
                                    control = control$control,
                                    lower = L,
@@ -428,7 +431,8 @@ mpmm <- function(
 
     if (sdr$pdHess) {
       ## pdHess can be FALSE
-      ##  * Happens for boundary fits (e.g. dispersion close to 0 - see 'spline' example)
+      ##  * Happens for boundary fits (e.g. dispersion close to 0 - see
+      ##    'spline' example)
       ##    * Option 1: Fall back to old method
       ##    * Option 2: Skip Newton iterations
       for (iter in seq_len(max.newton.steps)) {
@@ -442,7 +446,7 @@ mpmm <- function(
         par <- oldpar
       }
     } else {
-      warning("\n profiling not possible as Hessian was not positive-definite")
+      warning("profiling not possible as Hessian was not positive-definite")
     }
 
     opt$par <- par
@@ -458,7 +462,8 @@ mpmm <- function(
 
   }
 
-  opt$parfull <- obj$env$last.par.best[which(!names(obj$env$last.par.best) %in% "lg")]
+  opt$parfull <- obj$env$last.par.best[which(!names(obj$env$last.par.best)
+                                             %in% "lg")]
 
 
   ## Parameters, states and the fitted values
@@ -474,7 +479,7 @@ mpmm <- function(
 #    rep <- sdreport(obj, ignore.parm.uncertainty = TRUE)
 # }
   if(!rep$pdHess && !control$REML) {
-    warning("\n Hession was not positive-definite, fixed estimates do not have standard errors")
+    warning("Hession was not positive-definite, fixed estimates do not have standard errors")
     rep <- sdreport(obj, ignore.parm.uncertainty = TRUE)
   }
 
