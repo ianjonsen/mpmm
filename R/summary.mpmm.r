@@ -1,38 +1,42 @@
-##' @importFrom stats pnorm
+##' @title object summaries
+##' @description return a summary of an mpmm fit object
+##' @param object an mpmm fit object
+##' @param ... additional arguments to be ignored
+##' @importFrom stats pnorm AIC BIC
 ##' @importFrom lme4 nobars findbars
-##' @importFrom lme4 nobars
 ##' @importFrom dplyr %>%
 ##' @method summary mpmm
 ##' @export
-summary.mpmm <- function(fit, ...) {
+summary.mpmm <- function(object, ...) {
   if (length(list(...)) > 0) {
     warning("additional arguments ignored")
   }
   nobs <-
-    with(fit$data, apply(!is.na(cbind(lon, lat)), 1, min)) %>%
+    with(object$data, apply(!is.na(cbind(lon, lat)), 1, min)) %>%
     sum(.)
 
-  mkAICtab <- function(fit) {
+  mkAICtab <- function(object) {
+    ll <- logLik(object)
     data.frame(
-      AIC      = fit$aic,
-      BIC      = fit$bic,
-      logLik   = -1 * fit$opt$objective,
-      deviance = fit$opt$objective * 2,
-      df.resid = nobs - length(fit$tmb$par)
+      AIC      = suppressWarnings(AIC(object)), # suppress b/c logLik will throw warning first
+      BIC      = suppressWarnings(BIC(object)),
+      logLik   = ll,
+      deviance = ll * -2,
+      df.resid = nobs - length(object$tmb$par)
     )
   }
 
-  mkVartab <- function(fit) {
-    grpnm <- names(fit$re)[1]
-    rep <- fit$tmb$env$report(fit$tmb$env$last.par.best)
+  mkVartab <- function(object) {
+    grpnm <- names(object$re)[1]
+    rep <- object$tmb$env$report(object$tmb$env$last.par.best)
     stdev <- c(rep$sd[[1]],
-               log(fit$par["sigma_g", "Estimate"]))
+               log(object$par["sigma_g", "Estimate"]))
     Vartab <-
       data.frame(
         Group = c(grpnm, rep("", length(stdev) - 1)),
-        Name = c(names(fit$re)[-1], "Residual"),
-        Variance = exp(2 * stdev),
-        StdDev = exp(stdev)
+        Name = c(names(object$re)[-1], "Residual"),
+        Variance = round(stdev^2, 4),
+        StdDev = round(stdev, 4)
       )
 
     if (length(stdev) > 2) {
@@ -66,13 +70,13 @@ summary.mpmm <- function(fit, ...) {
     Vartab
   }
 
-  mkFixtab <- function(fit) {
-    terms <- nobars(fit$formula) %>%
+  mkFixtab <- function(object) {
+    terms <- nobars(object$formula) %>%
       terms() %>%
       attr(., "term.labels")
     terms <- c("Intercept", terms)
-    val <- fit$par[rownames(fit$par) %in% terms, "Estimate"]
-    stderr <- fit$par[rownames(fit$par) %in% terms, "Std. Error"]
+    val <- object$par[rownames(object$par) %in% terms, "Estimate"]
+    stderr <- object$par[rownames(object$par) %in% terms, "Std. Error"]
     terms[1] <- "(Intercept)"
 
     Fixtab <- cbind(#terms,
@@ -84,32 +88,32 @@ summary.mpmm <- function(fit, ...) {
     Fixtab
   }
 
-  nobs <- with(fit$data, apply(!is.na(cbind(lon, lat)), 1, min)) %>%
+  nobs <- with(object$data, apply(!is.na(cbind(lon, lat)), 1, min)) %>%
     sum(.)
-  resid.df <- nobs - length(fit$opt$par)
-  terms <- nobars(fit$formula) %>%
+  resid.df <- nobs - length(object$opt$par)
+  terms <- nobars(object$formula) %>%
     terms() %>%
     attr(., "term.labels")
   terms <- c("Intercept", terms)
-  coef <- fit$par[rownames(fit$par) %in% terms, "Estimate"]
+  coef <- object$par[rownames(object$par) %in% terms, "Estimate"]
 
-  ranform <- lme4::findbars(fit$formula) %>%
+  ranform <- lme4::findbars(object$formula) %>%
     as.character() %>%
     paste0("(", ., ")")
-  fixform <- lme4::nobars(fit$formula) %>% as.character()
+  fixform <- lme4::nobars(object$formula) %>% as.character()
 
   structure(
     list(
-      mf = fit$mf,
-      logLik = mkAICtab(fit),
-      grpnm = names(fit$re)[1],
+      mf = object$mf,
+      logLik = mkAICtab(object),
+      grpnm = names(object$re)[1],
       nobs = nobs,
       coefficients = coef,
       ranform = ranform,
       fixform = fixform,
-      formula = fit$formula,
-      Vartab = mkVartab(fit),
-      Fixtab = mkFixtab(fit)
+      formula = object$formula,
+      Vartab = mkVartab(object),
+      Fixtab = mkFixtab(object)
     ),
     class = "summary.mpmm"
   )
