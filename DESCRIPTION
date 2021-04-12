@@ -1,8 +1,8 @@
 Package: mpmm
 Type: Package
 Title: (animal) Movement Persistence Mixed-effects Models
-Version: 0.2.0.9067
-Date: 09/04/2021
+Version: 0.2-1
+Date: 12/04/2021
 Authors@R: 
     c(
       person(given = "Ian",
