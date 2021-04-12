@@ -1,0 +1,62 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  message = FALSE
+)
+```
+
+**mpmm** - fit movement persistence mixed-effects models to animal tracking data 
+
+<!-- badges: start -->
+[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+
+master branch:  
+![R-CMD-check](https://github.com/ianjonsen/mpmm/actions/workflows/check-full.yaml/badge.svg?branch=master)
+
+dev branch:  
+![R-CMD-check](https://github.com/ianjonsen/mpmm/actions/workflows/check-full.yaml/badge.svg?branch=dev_4_james)
+<!-- badges: end -->
+
+
+`mpmm` is an R package that fits movement persistence mixed-effect models to animal tracking data for inference of covariate relationships with  movement behaviour, accounting for individual variability. It is assumed that the location data are either relatively error-free (e.g., GPS locations) are filtered estimates a state-space model fitted to error-prone data (e.g., Argos locations). Models are specified using standard mixed-model formulas, as you would in `lme4` or `glmmTMB`.
+
+## Installation 
+First, ensure you have R version >= 3.6.0 installed (preferably R 4.0.0 or higher):
+
+```{r get-version, eval = FALSE}
+R.Version()
+```
+
+### From GitHub (source)  
+
+On PC's running Windows, ensure you have installed [Rtools](https://cran.r-project.org/bin/windows/Rtools/) 
+
+On Mac's, ensure you have installed the [Command Line Tools for Xcode](https://developer.apple.com/download/more/) by executing `xcode-select --install` in the terminal; or you can download the latest version from the URL (free developer registration may be required). A full Xcode install uses up a lot of disk space and is not required.
+
+Currently, `mpmm` can only be installed from GitHub:
+```{r gh-installation, eval = FALSE}
+remotes::install_github("ianjonsen/mpmm")
+```
+
+Note: there can be issues getting compilers to work properly, especially on a Mac with OS X 10.13.x or higher. If you encounter install and compile issues, I recommend you consult the excellent information on the [glmmTMB](https://github.com/glmmTMB/glmmTMB) GitHub.
+
+## Basic example
+
+`mpmm` fits mixed models and facilitates model selection, validation and visualisation of estimated covariate relationships:
+```{r example}
+library(mpmm)
+
+fit <- mpmm(~ ice + (ice | id), data = ellie.ice, verbose = 0) ## turn off parameter trace for tidy output
+
+summary(fit)
+
+plot(fit)
+```
