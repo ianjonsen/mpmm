@@ -1,0 +1,47 @@
+citHeader("To cite mpmm in publications, please, use these references:")
+
+citEntry(entry = "article",
+         title        = "Movement responses to environment: fast inference of variation among southern elephant seals with a mixed effects model",
+         author       = personList(as.person("Ian D. Jonsen"),
+                                   as.person("Clive R. McMahon"),
+                                   as.person("Toby A. Patterson"),
+                                   as.person("Marie Auger-Méthé"),
+                                   as.person("Robert G. Harcourt"),
+                                   as.person("Mark A. Hindell"),
+                                   as.person("Sophie Bestley")),
+         journal      = "Ecology",
+         year         = "2019",
+         volume       = "100",
+         pages        = "e02566",
+         doi          = "10.1002/ecy.2566",
+         url          = "https://doi.org/10.1002/ecy.2566",
+
+         textVersion  =
+           paste("Jonsen, I.D., McMahon, C.R., Patterson, T.A. et al. (2019) ",
+                 "Movement responses to environment: fast inference of variation among southern elephant seals with a mixed effects model.",
+                 " Ecology 100:e02566. https://doi.org/10.1002/ecy.2566")
+)
+
+citEntry(entry = "article",
+         title        = "Spatiotemporal modelling of marine movement data using Template Model Builder (TMB).",
+         author       = personList(as.person("Marie Auger-Méthé"),
+                                   as.person("Christoffer M. Albertsen"),
+                                   as.person("Ian D. Jonsen"),
+                                   as.person("Andrew E Derocher"),
+                                   as.person("Damian C. Lidgard"),
+                                   as.person("Katharine R. Studholme"),
+                                   as.person("W. Don Bowen"),
+                                   as.person("Glenn T. Crossin"),
+                                   as.person("Joanna Mills Flemming")),
+         journal      = "Marine Ecology Progress Series",
+         year         = "2017",
+         volume       = "565",
+         pages        = "237-249",
+         doi          = "10.3354/meps12019",
+         url          = "https://doi.org/10.3354/meps12019",
+
+         textVersion  =
+           paste("Auger-Méthé, M., Albertsen, C.M., Jonsen, I.D. et al. (2017) ",
+                 "Spatiotemporal modelling of marine movement data using Template Model Builder (TMB).",
+                 " Mar. Ecol. Prog. Ser 565:237-249. https://doi.org/10.3354/meps12019")
+)

@@ -17,12 +17,19 @@ dev branch:
 <!-- badges: end -->
 
 `mpmm` is an R package that fits movement persistence mixed-effect
-models to animal tracking data for inference of covariate relationships
-with movement behaviour, accounting for individual variability. It is
-assumed that the location data are either relatively error-free (e.g.,
-GPS locations) are filtered estimates a state-space model fitted to
-error-prone data (e.g., Argos locations). Models are specified using
-standard mixed-model formulas, as you would in `lme4` or `glmmTMB`.
+models to animal tracking data for inference of linear relationships
+with covariates, accounting for individual variability (Jonsen et
+al. 2019. Ecology 100:e02566). Random effects are assumed to be
+approximately normal. It is assumed that the location data are either
+relatively error-free (e.g., GPS locations) or filtered estimates from a
+state-space model fitted to error-prone data (e.g., Argos locations).
+Models are specified using standard mixed-model formulas, as you would
+in `lme4` or `glmmTMB`. The underlying code for specifying and
+estimating fixed and random effects borrows heavily on `glmmTMB` code,
+but is implemented in a more limited manner in `mpmm`. Currently, for
+example, only diagonal or unstructured covariances are possible;
+interaction terms are not possible; grouping term is always assumed to
+be the individual animal `id` (or individual sub-tracks `tid`).
 
 ## Installation
 
