@@ -24,12 +24,15 @@ approximately normal. It is assumed that the location data are either
 relatively error-free (e.g., GPS locations) or filtered estimates from a
 state-space model fitted to error-prone data (e.g., Argos locations).
 Models are specified using standard mixed-model formulas, as you would
-in `lme4` or `glmmTMB`. The underlying code for specifying and
-estimating fixed and random effects borrows heavily on `glmmTMB` code,
-but is implemented in a more limited manner in `mpmm`. Currently, for
-example, only diagonal or unstructured covariances are possible;
-interaction terms are not possible; grouping term is always assumed to
-be the individual animal `id` (or individual sub-tracks `tid`).
+in `lme4` or `glmmTMB`. The movement persistence model can be fit as
+either a discrete-time (Jonsen et al. 2019) or a continuous-time
+(Auger-Méthé et al. 2017. MEPS 565:237-249) process. The underlying code
+for specifying and estimating fixed and random effects borrows heavily
+on `glmmTMB` code, but is implemented in a more limited manner in
+`mpmm`. Currently, only diagonal or unstructured covariances are
+possible; interaction terms are not possible; the grouping term for the
+random effects is always assumed to be the individual animal `id` (or
+individual sub-tracks `tid`).
 
 ## Installation
 
@@ -76,7 +79,7 @@ fit <-
                id),
     data = ellie.ice,
     control = mpmm_control(
-      REML = TRUE,
+      REML = TRUE, 
       verbose = 0 # turn off parameter trace for tidy output
     )
   ) 
