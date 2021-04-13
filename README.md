@@ -10,10 +10,10 @@ tracking data
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 
 master branch:  
-![R-CMD-check](https://github.com/ianjonsen/mpmm/actions/workflows/check-full.yaml/badge.svg?branch=master)
+[![R-CMD-check](https://github.com/ianjonsen/mpmm/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/ianjonsen/mpmm/actions/workflows/R-CMD-check.yaml)
 
-dev branch:  
-![R-CMD-check](https://github.com/ianjonsen/mpmm/actions/workflows/check-full.yaml/badge.svg?branch=dev_4_james)
+dev branch:
+
 <!-- badges: end -->
 
 `mpmm` is an R package that fits movement persistence mixed-effect
