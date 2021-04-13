@@ -5,14 +5,16 @@ data(ellie.ice.short)
 
 ## REML on
 test_that("mpmm returns mpmm list w 13 elements", {
-  fit <- mpmm(~ ice + (1 | id), data = ellie.ice.short, control = mpmm_control(verbose = 0, REML = TRUE))
+  fit <- mpmm(~ ice + (1 | id), data = ellie.ice.short,
+              control = mpmm_control(verbose = 0, REML = TRUE))
   expect_s3_class(fit, "mpmm")
   expect_equal(length(fit), 13)
 })
 
 #REML off
 test_that("mpmm returns mpmm list w 13 elements", {
-  fit <- mpmm(~ ice + (1 | id), data = ellie.ice.short, control = mpmm_control(verbose = 0, REML = FALSE))
+  fit <- mpmm(~ ice + (1 | id), data = ellie.ice.short,
+              control = mpmm_control(verbose = 0, REML = FALSE))
   expect_s3_class(fit, "mpmm")
   expect_equal(length(fit), 13)
 })
@@ -29,7 +31,8 @@ test_that("mpmm returns mpmm list w 13 elements", {
 
 #profile on
 test_that("mpmm returns mpmm list w 13 elements", {
-  fit <- mpmm(~ ice + (1 | id), data = ellie.ice.short, control = mpmm_control(verbose = 0, profile = TRUE))
+  fit <- mpmm(~ ice + (1 | id), data = ellie.ice.short,
+              control = mpmm_control(verbose = 0, profile = TRUE))
   expect_s3_class(fit, "mpmm")
   expect_equal(length(fit), 13)
 })

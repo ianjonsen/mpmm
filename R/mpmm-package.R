@@ -26,6 +26,7 @@
 ##' @importFrom wesanderson wes_palette
 ##' @importFrom stats pnorm AIC BIC logLik var getCall pchisq anova
 ##' @importFrom methods is
+##' @importFrom utils globalVariables
 NULL
 
 ##' @name ellie.ice
