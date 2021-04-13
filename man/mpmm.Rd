@@ -4,23 +4,27 @@
 \alias{mpmm}
 \title{Move Persistence Mixed-Effects Model}
 \usage{
-mpmm(formula = NA, data = NULL, method = "ML", optim = c("nlminb",
-  "optim"), control = NULL, verbose = FALSE, model = "mpmm")
+mpmm(
+  formula = NA,
+  data = NULL,
+  map = NULL,
+  control = mpmm_control(),
+  inner.control = inner_control()
+)
 }
 \arguments{
 \item{formula}{a right-hand-side regression formula (no response variable)}
 
-\item{data}{a tibble of observations, grouped by at least 'id' (see details)}
+\item{data}{a data frame of observations (see details)}
 
-\item{method}{method for maximising the log-likelihood ("ML" or "REML")}
+\item{map}{a named list of parameters as factors that are to be fixed during
+estimation, e.g., list(rho = factor(NA))}
 
-\item{optim}{numerical optimizer to be used (nlminb or optim)}
+\item{control}{a list of control parameters for the outer optimization
+(see \code{\link{mpmm_control}})}
 
-\item{control}{a list of control parameters (currently only for nlminb)}
-
-\item{verbose}{report progress during minimization}
-
-\item{model}{"mpmm" or "mpmm_dt", "mpmm" is the default value and is for a model with regular time intervals between locations, "mpmm_dt" is for irregular time intervals.}
+\item{inner.control}{a list of control parameters for the inner optimization
+(see \code{\link{MakeADFun}} and \code{\link{newton}})}
 }
 \value{
 a list with components
@@ -32,24 +36,25 @@ a list with components
 \item{\code{opt}}{the object returned by the optimizer}
 }
 \description{
-Fit a move persistence random walk via TMB to a pre-filtered/regularised animal
-  track and estimate gamma as a linear function of covariates
+Fit a move persistence random walk via TMB to a pre-filtered/regularized
+ animal track and estimate gamma as a linear function of covariates
 }
 \details{
-The input track is given as a tibble grouped by id (and optionally tid) where each row is an
+The input track is given as a dataframe where each row is an
 observed location and columns
 \describe{
 \item{'id'}{individual animal identifier,}
 \item{'date'}{observation time (POSIXct,GMT),}
 \item{'lon'}{observed longitude,}
 \item{'lat'}{observed latitude,}
-\item{'tid'}{identifier for tracks if there are more than one track per individual (optional),}
+\item{'tid'}{identifier for tracks if there are more than one track per
+individual (optional),}
 \item{'...'}{named covariates appended to track}
 }
 }
 \examples{
-data(ellie.ice)
-fit <- mpmm(~ ice + (1 | id), data = ellie.ice)
+data(ellie.ice.short)
+fit <- mpmm(~ ice + (1 | id), data = ellie.ice.short)
 summary(fit)
 
 }
