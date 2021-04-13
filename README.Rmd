@@ -22,7 +22,7 @@ master branch:
 ![R-CMD-check](https://github.com/ianjonsen/mpmm/actions/workflows/check-full.yaml/badge.svg?branch=master)
 
 dev branch:  
-![R-CMD-check](https://github.com/ianjonsen/mpmm/actions/workflows/check-full.yaml/badge.svg?branch=dev_4_james)
+[![R-CMD-check](https://github.com/ianjonsen/mpmm/actions/workflows/R-CMD-check.yaml/badge.svg?branch=dev)](https://github.com/ianjonsen/mpmm/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 
