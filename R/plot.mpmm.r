@@ -3,6 +3,7 @@
 ##' an mpmm fit object
 ##' @param x an mpmm fit object
 ##' @param label add id labels to random effects
+##' @param lwd a vector of regression line widths (random effect, fixed effects)
 ##' @param ... additional arguments to be ignored
 ##'
 ##' @importFrom lme4 nobars
@@ -14,7 +15,7 @@
 ##' @importFrom wesanderson wes_palette
 ##' @method plot mpmm
 ##' @export
-plot.mpmm <- function(x, label = FALSE, ...) {
+plot.mpmm <- function(x, label = FALSE, lwd = c(0.25, 0.75), ...) {
 
   if (length(list(...)) > 0) {
     warning("additional arguments ignored")
@@ -125,17 +126,17 @@ gg <- ggplot() + theme(axis.text = element_text(size = 14),
                           axis.title = element_text(size = 20)) +
      geom_line(data = fe.dat,
                aes(x, g),
-               size = 1,
+               size = lwd[2],
                colour = wpal[2])
 
 if(label) {
   gg <- gg +
     geom_line(data = re.dat,
-               aes(x, g, group = id, colour = id), size = 0.3, alpha = 0.7)
+               aes(x, g, group = id, colour = id), size = lwd[1], alpha = 0.7)
   } else {
     gg <- gg +
       geom_line(data = re.dat,
-              aes(x, g, group = id), size = 0.3, colour = wpal[3], alpha = 0.7)
+              aes(x, g, group = id), size = lwd[1], colour = wpal[3], alpha = 0.7)
   }
 
     gg <- gg +
