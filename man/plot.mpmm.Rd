@@ -4,12 +4,14 @@
 \alias{plot.mpmm}
 \title{plot}
 \usage{
-\method{plot}{mpmm}(x, label = FALSE, ...)
+\method{plot}{mpmm}(x, label = FALSE, lwd = c(0.25, 0.75), ...)
 }
 \arguments{
 \item{x}{an mpmm fit object}
 
 \item{label}{add id labels to random effects}
+
+\item{lwd}{a vector of regression line widths (random effect, fixed effects)}
 
 \item{...}{additional arguments to be ignored}
 }

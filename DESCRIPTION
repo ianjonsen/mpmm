@@ -1,6 +1,6 @@
 Package: mpmm
 Type: Package
-Title: (animal) Movement Persistence Mixed-effects Models
+Title: (Animal) Movement Persistence Mixed-effects Models
 Version: 0.2-2
 Date: 2022-12-04
 Authors@R: 
@@ -26,8 +26,6 @@ Imports:
     dplyr (>= 1.0.0),
     tibble (>= 3.0.0),
     ggplot2,
-    gridExtra,
-    reshape2,
     methods,
     wesanderson,
     tidyr
@@ -37,7 +35,7 @@ LazyData: true
 LinkingTo: 
     RcppEigen,
     TMB
-RoxygenNote: 7.1.1
+RoxygenNote: 7.2.1
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
