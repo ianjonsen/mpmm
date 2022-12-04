@@ -188,12 +188,14 @@ TMBoneStepPredict <- function(obj,
   ## Parallel case: overload lapply
   if(parallel){
     ## mclapply uses fork => must set nthreads=1
-    nthreads.restore <- TMB::openmp()
-    on.exit( TMB::openmp( nthreads.restore ), add=TRUE)
+    ## modified from TMB to ensure correct DLL selected (in case glmmTMB DLL is loaded)
+    nthreads.restore <- TMB::openmp(DLL = "mpmm")
+    on.exit( TMB::openmp( nthreads.restore, DLL = "mpmm" ), add=TRUE)
 #    TMB::openmp(ncores)
 #    requireNamespace("parallel") # was library(parallel)
 #    lapply <- parallel::mclapply
   }
+
   ## Trace one-step functions
   tracefun <- function(k)if(trace)print(k)
   ## Apply a one-step method and generate common output assuming
