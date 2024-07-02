@@ -2,13 +2,13 @@ Package: mpmm
 Type: Package
 Title: (Animal) Movement Persistence Mixed-Effects Models
 Version: 0.2-2
-Date: 2022-12-04
+Date: 2024-07-02
 Authors@R: 
     c(
       person(given = "Ian",
            family = "Jonsen",
            role = c("aut", "cre"),
-           email = "ian.jonsen@mq.edu.au"),
+           email = "jonsen@stochastic-qc.org"),
            person(given = "Marie",
            family = "Auger-Méthé",
            role = c("aut", "ctb"),

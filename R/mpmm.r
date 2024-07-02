@@ -241,7 +241,6 @@ mpmm <- function(
   getVal <- function(obj, component)
     vapply(obj, function(x) x[[component]], numeric(1))
 
-
   param <- with(data.tmb,
                      list(
                        lg          = rep(0, nobs),
@@ -254,6 +253,7 @@ mpmm <- function(
                                          sum(getVal(condReStruc,
                                                     "blockNumTheta")))
                      ))
+
   rnd <- c("lg", if(ncol(data.tmb$Z) > 0) "b")
 
   if(!is.null(map)) {
