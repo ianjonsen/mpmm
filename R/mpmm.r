@@ -35,8 +35,8 @@
 ##' summary(fit)
 ##'
 ##' @useDynLib mpmm
-##' @importFrom lme4 nobars findbars subbars mkReTrms
-##' @importFrom glmmTMB getReStruc splitForm
+##' @importFrom reformulas splitForm findbars nobars subbars mkReTrms
+##' @importFrom glmmTMB getReStruc
 ##' @importFrom Matrix t
 ##' @importFrom dplyr %>% arrange count mutate as_tibble tibble
 ##' @importFrom TMB MakeADFun sdreport newtonOption
@@ -108,7 +108,7 @@ mpmm <- function(
   ## should add proper na.action to model frame...
   ## could add prior to handle missing values...
   covars <- nobars(formula) %>% terms() %>% attr(., "term.labels")
-  nas <- is.na(data[, covars]) %>% apply(., 2, sum)
+  nas <- cbind(is.na(data[, covars])) %>% apply(., 2, sum)
   if (sum(nas) > 0)
     stop(
       paste0(

@@ -3,7 +3,7 @@
 ##' @param object an mpmm fit object
 ##' @param ... additional arguments to be ignored
 ##' @importFrom stats pnorm AIC BIC
-##' @importFrom lme4 nobars findbars
+##' @importFrom reformulas nobars findbars
 ##' @importFrom dplyr %>%
 ##' @method summary mpmm
 ##' @export
@@ -97,7 +97,7 @@ summary.mpmm <- function(object, ...) {
   terms <- c("Intercept", terms)
   coef <- object$par[rownames(object$par) %in% terms, "Estimate"]
 
-  ranform <- lme4::findbars(object$formula) %>%
+  ranform <- findbars(object$formula) %>%
     as.character() %>%
     paste0("(", ., ")")
   fixform <- lme4::nobars(object$formula) %>% as.character()

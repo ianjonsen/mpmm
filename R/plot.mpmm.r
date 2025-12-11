@@ -6,7 +6,7 @@
 ##' @param lwd a vector of regression line widths (random effect, fixed effects)
 ##' @param ... additional arguments to be ignored
 ##'
-##' @importFrom lme4 nobars
+##' @importFrom reformulas nobars
 ##' @importFrom ggplot2 ggplot geom_line aes xlab ylab theme_bw theme ylim xlim
 ##' @importFrom ggplot2 element_text facet_wrap element_blank
 ##' @importFrom dplyr left_join mutate group_by %>% select arrange bind_cols

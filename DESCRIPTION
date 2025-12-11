@@ -1,8 +1,8 @@
 Package: mpmm
 Type: Package
 Title: (Animal) Movement Persistence Mixed-Effects Models
-Version: 0.2-2
-Date: 2024-07-02
+Version: 0.2-3
+Date: 2025-12-11
 Authors@R: 
     c(
       person(given = "Ian",
@@ -20,7 +20,6 @@ Description: Fit covariates as linear mixed-effects to latent, time-varying move
 Depends: R (>= 3.5.0)
 Imports: 
     TMB (>= 1.7.19),
-    lme4 (>= 1.1-15),
     glmmTMB (>= 1.0.0),
     Matrix (>= 1.2-12),
     dplyr (>= 1.0.0),
@@ -28,14 +27,15 @@ Imports:
     ggplot2,
     methods,
     wesanderson,
-    tidyr
+    tidyr,
+    reformulas
 License: AGPL-3
 Encoding: UTF-8
 LazyData: true
 LinkingTo: 
     RcppEigen,
     TMB
-RoxygenNote: 7.2.1
+RoxygenNote: 7.3.3
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3

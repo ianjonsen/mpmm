@@ -4,15 +4,14 @@
 ##'
 ##' @name mpmm-package
 ##' @aliases mpmm-package
-##' @docType package
 ##' @author Ian Jonsen
 ##'
 ##' @seealso mpmm
 ##' @references Jonsen ID, McMahon CR, Patterson TA, et al. (2019) Movement responses to environment: fast inference of variation among southern elephant seals with a mixed effects model. Ecology. 100(1):e02566 https://doi.org/10.1002/ecy.2566
 ##'
 ##' @keywords mpmm
-##' @importFrom lme4 nobars findbars subbars mkReTrms
-##' @importFrom glmmTMB getReStruc splitForm
+##' @importFrom reformulas nobars findbars splitForm subbars mkReTrms
+##' @importFrom glmmTMB getReStruc
 ##' @importFrom Matrix t
 ##' @importFrom dplyr %>% arrange count mutate left_join group_by select
 ##' @importFrom dplyr bind_cols
